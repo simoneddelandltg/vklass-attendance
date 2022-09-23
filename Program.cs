@@ -2,11 +2,12 @@
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
+using System.Globalization;
 
-/*
-int maxStudents = 3;
+
+int maxStudents = 1000;
 int numStudents = 0;
-*/
+
 
 // Initialize and open the ChromeDriver
 ChromeOptions options = new ChromeOptions();
@@ -100,22 +101,31 @@ foreach (var item in resultLinkList)
 
     // Save overview data
     overviewList.Add(studentAttendance);
-    Console.WriteLine($"{studentAttendance.Name}\t{studentAttendance.Attendance}\t{studentAttendance.ValidAbsence}\t{studentAttendance.InvalidAbsence}");
+    //Console.WriteLine($"{studentAttendance.Name}\t{studentAttendance.Attendance}\t{studentAttendance.ValidAbsence}\t{studentAttendance.InvalidAbsence}");
     
-    /*
+    
     numStudents++;
     if (numStudents >= maxStudents)
     {
         break;
     }
-    */
+    
 }
 
 
 string overviewTableRows = "";
 foreach (var item in overviewList)
 {
-    overviewTableRows += $"<tr><td>{item.Name}</td><td>{item.Attendance}</td><td>{Math.Round(100 - item.Attendance, 2)}</td><td>{item.ValidAbsence}</td><td>{item.InvalidAbsence}</td></tr>\n";
+    string rowClass = "";
+    if (item.Attendance <= 90)
+    {
+        rowClass = "medium-absence";
+    }
+    if (item.Attendance <= 80)
+    {
+        rowClass = "high-absence";
+    }
+    overviewTableRows += $"<tr class=\"{rowClass}\"><td>{item.Name}</td><td>{item.Attendance.ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td><td>{Math.Round(100 - item.Attendance, 2).ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td><td>{item.ValidAbsence.ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td><td>{item.InvalidAbsence.ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td></tr>\n";
 }
 
 

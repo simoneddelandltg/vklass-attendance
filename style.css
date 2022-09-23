@@ -5,6 +5,7 @@
     font-family: sans-serif;
     min-width: 400px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    margin: auto;
 }
 
 th {
@@ -32,9 +33,18 @@ tr:last-of-type {
 main {
     max-width: 60rem;
     margin: auto;
+    text-align: center;
 }
 
 h1 {
     font-family: sans-serif;
     text-align: center;
+}
+
+.high-absence {
+    color: rgb(210, 0, 0);
+}
+
+.medium-absence {
+    color: rgb(199, 131, 5);
 }
