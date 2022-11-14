@@ -8,6 +8,20 @@ using System.Globalization;
 int maxStudents = 1000;
 int numStudents = 0;
 
+Dictionary<string, int> months = new Dictionary<string, int>();
+months["Januari"] = 1;
+months["Februari"] = 2;
+months["Mars"] = 3;
+months["April"] = 4;
+months["Maj"] = 5;
+months["Juni"] = 6;
+months["Juli"] = 7;
+months["Augusti"] = 8;
+months["September"] = 9;
+months["Oktober"] = 10;
+months["November"] = 11;
+months["December"] = 12;
+
 
 // Initialize and open the ChromeDriver
 ChromeOptions options = new ChromeOptions();
@@ -47,6 +61,8 @@ foreach (var item in resultatsidor)
 }
 
 Console.WriteLine($"Hittade {resultLinkList.Count} st elever");
+DateTime startTime = DateTime.Now;
+Console.WriteLine("Start time: " + startTime.ToString("HH:mm:ss"));
 
 foreach (var item in resultLinkList)
 {
@@ -106,20 +122,59 @@ foreach (var item in resultLinkList)
         dayList.Add(pDay.Text);
     }
 
-    Console.WriteLine("All lessons hovered");
+    //Console.WriteLine("All lessons hovered");
     var tooltipsAfter = driver.FindElements(By.ClassName("rtWrapperContent"));
-    Console.WriteLine("Hittar " + tooltipsAfter.Count + " lektioner med info");
-    Console.WriteLine();
+    //Console.WriteLine("Hittar " + tooltipsAfter.Count + " lektioner med info");
+    //Console.WriteLine();
+    var lessonList = new List<Lesson>();
+
     for (int i = 0; i < tooltipsAfter.Count; i++)
     {
         var tooltip = tooltipsAfter[i];
         var splitTooltip = tooltip.GetAttribute("innerHTML").Split(new string[] { "<div>", "<br>", "</div>" }, StringSplitOptions.TrimEntries);
-        Console.WriteLine($"{currentYear} {currentMonthName} {dayList[i]}");
+        //Console.WriteLine($"{currentYear} {currentMonthName} {dayList[i]}");
+        string clockInfo = "";
+        string course = "";
+        string status = "";
+        int missingMinutes = 0;
         foreach (var line in splitTooltip)
         {
-            Console.WriteLine(line);
+            //Console.WriteLine(line);
+            if (line.Contains("kl: "))
+            {
+                clockInfo = line[4..];
+            }
+            else if (line.Contains("Kurs :"))
+            {
+                course = line[7..];
+            }
+            else if (line.Contains("Status"))
+            {
+                
+                if (line.Length >= 8)
+                {
+                    status = line[8..];
+                }
+                else
+                {
+                    status = "EjRapporterat";
+                }
+            }
+            else if(line.Contains("<span"))
+            {
+                int sInd = line.IndexOf(":: ") + 3;
+                int eInd = line.IndexOf(" min");
+                missingMinutes = int.Parse(line[sInd..eInd]);
+            }
         }
-     
+
+        var newLesson = new Lesson();
+        newLesson.StartTime = new DateTime(int.Parse(currentYear), months[currentMonthName], int.Parse(dayList[i]), int.Parse(clockInfo[..2]), int.Parse(clockInfo[3..5]),0);
+        newLesson.StopTime = new DateTime(int.Parse(currentYear), months[currentMonthName], int.Parse(dayList[i]), int.Parse(clockInfo[8..10]), int.Parse(clockInfo[11..13]), 0);
+        newLesson.Course = course;
+        newLesson.Status = status == "Närvarande" ? LessonStatus.Närvarande : status.Contains("Giltigt") ? LessonStatus.GiltigFrånvaro : status.Contains("Ej") ? LessonStatus.EjRapporterat : LessonStatus.OgiltigFrånvaro;
+        newLesson.MissingMinutes = missingMinutes;
+        lessonList.Add(newLesson);
     }
 
     // END DEBUG!
@@ -134,16 +189,26 @@ foreach (var item in resultLinkList)
     Thread.Sleep(3000);
     Screenshot ssPrev = ((ITakesScreenshot)driver).GetScreenshot();
     ssPrev.SaveAsFile($"{saveFolder + name + "-" + previousMonthName}.png", ScreenshotImageFormat.Png);
+    */
 
     // Save overview data
+    studentAttendance.Lessons = lessonList;
     overviewList.Add(studentAttendance);
     //Console.WriteLine($"{studentAttendance.Name}\t{studentAttendance.Attendance}\t{studentAttendance.ValidAbsence}\t{studentAttendance.InvalidAbsence}");
-    */
-    
+
+
     numStudents++;
     if (numStudents >= maxStudents)
     {
         break;
+    }
+    else if (numStudents == 1)
+    {
+        var timeForOneStudent = DateTime.Now;
+        var estimatedTime = timeForOneStudent - startTime;
+        var finishTime = startTime + estimatedTime * resultLinkList.Count;
+        Console.WriteLine("Estimated total running time: " + (estimatedTime * resultLinkList.Count).ToString());
+        Console.WriteLine("Estimated finish time: " + finishTime.ToString("HH:mm"));
     }
     
 }
@@ -181,4 +246,23 @@ class AttendanceData
     public double Attendance { get; set; }
     public double ValidAbsence { get; set; }
     public double InvalidAbsence { get; set; }
+    public List<Lesson> Lessons { get; set; } = new List<Lesson>();
+}
+
+enum LessonStatus
+{
+    Närvarande,
+    GiltigFrånvaro,
+    OgiltigFrånvaro,
+    EjRapporterat
+}
+
+class Lesson
+{
+    public DateTime StartTime { get; set; }
+    public DateTime StopTime { get; set; }
+    public string Course { get; set; }
+    public LessonStatus Status { get; set; }
+    public int MissingMinutes { get; set; }
+
 }
