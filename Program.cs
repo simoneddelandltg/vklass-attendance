@@ -87,8 +87,44 @@ foreach (var item in resultLinkList)
     // Get name of current month
     var currentMonthSpan = wait.Until(e => e.FindElement(By.XPath("//a/following-sibling::span")));
     var currentMonthName = currentMonthSpan.Text.Split()[0];
+    var currentYear = currentMonthSpan.Text.Split()[1];
 
-    
+
+    // DEBUG!
+
+    var lessons = wait.Until(e => e.FindElements(By.ClassName("lessonObject")));
+    Console.WriteLine("Hittade " + lessons.Count + " lektioner");
+
+    var dayList = new List<string>();
+
+    foreach (var lesson in lessons)
+    {
+        actions.MoveToElement(lesson).Perform();
+        Thread.Sleep(300);
+        var par = lesson.FindElement(By.XPath("./.."));
+        var pDay = par.FindElement(By.ClassName("DayDate"));
+        dayList.Add(pDay.Text);
+    }
+
+    Console.WriteLine("All lessons hovered");
+    var tooltipsAfter = driver.FindElements(By.ClassName("rtWrapperContent"));
+    Console.WriteLine("Hittar " + tooltipsAfter.Count + " lektioner med info");
+    Console.WriteLine();
+    for (int i = 0; i < tooltipsAfter.Count; i++)
+    {
+        var tooltip = tooltipsAfter[i];
+        var splitTooltip = tooltip.GetAttribute("innerHTML").Split(new string[] { "<div>", "<br>", "</div>" }, StringSplitOptions.TrimEntries);
+        Console.WriteLine($"{currentYear} {currentMonthName} {dayList[i]}");
+        foreach (var line in splitTooltip)
+        {
+            Console.WriteLine(line);
+        }
+     
+    }
+
+    // END DEBUG!
+
+    /*
     // Take a screenshot and save it in a folder on the desktop
     Screenshot ss = ((ITakesScreenshot)driver).GetScreenshot();
     ss.SaveAsFile($"{saveFolder + name + "-" + currentMonthName}.png", ScreenshotImageFormat.Png);
@@ -102,7 +138,7 @@ foreach (var item in resultLinkList)
     // Save overview data
     overviewList.Add(studentAttendance);
     //Console.WriteLine($"{studentAttendance.Name}\t{studentAttendance.Attendance}\t{studentAttendance.ValidAbsence}\t{studentAttendance.InvalidAbsence}");
-    
+    */
     
     numStudents++;
     if (numStudents >= maxStudents)
