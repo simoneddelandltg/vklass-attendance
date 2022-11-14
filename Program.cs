@@ -137,7 +137,7 @@ File.Copy("style.css", saveFolder + "style.css", true);
 File.Copy("sort-table.min.js", saveFolder + "sort-table.min.js", true);
 
 Console.WriteLine("Programmet avslutas...");
-driver.Close();
+driver.Quit();
 
 class AttendanceData
 {
