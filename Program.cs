@@ -209,6 +209,7 @@ foreach (var item in resultLinkList)
         var finishTime = startTime + estimatedTime * resultLinkList.Count;
         Console.WriteLine("Estimated total running time: " + (estimatedTime * resultLinkList.Count).ToString());
         Console.WriteLine("Estimated finish time: " + finishTime.ToString("HH:mm"));
+        Console.WriteLine(GetHTMLAttendanceOverview(studentAttendance));
     }
     
 }
@@ -240,6 +241,47 @@ File.Copy("sort-table.min.js", saveFolder + "sort-table.min.js", true);
 Console.WriteLine("Programmet avslutas...");
 driver.Quit();
 
+
+string GetHTMLAttendanceOverview(AttendanceData attendance)
+{
+
+    string res = $"<h1>{attendance.Name}</h1>";
+
+    attendance.Lessons.Sort((x,y) => x.StartTime.CompareTo(y.StartTime));
+    int startWeek = ISOWeek.GetWeekOfYear(attendance.Lessons.First().StartTime);
+    int endWeek = ISOWeek.GetWeekOfYear(attendance.Lessons.Last().StartTime);
+    int startYear = attendance.Lessons.First().StartTime.Year;
+    int endYear = attendance.Lessons.Last().StartTime.Year;
+
+    res += "<table>" +
+        "<tr><td>Vecka</td><td>Måndag</td><td>Tisdag</td><td>Onsdag</td><td>Torsdag</td><td>Fredag</td></tr>";
+    // Loop through all weeks
+    for (int week = startWeek; week <= endWeek; week++)
+    {
+        res += $"<tr><td>{week}</td>";
+        // Loop through Monday - Friday
+        for (int i = 1; i <= 5; i++)
+        {
+            res += "<td>";
+            var low = ISOWeek.ToDateTime(startYear, week, (DayOfWeek)i);
+            var high = ISOWeek.ToDateTime(startYear, week, (DayOfWeek)(i + 1));
+
+            var matchingLessons = attendance.Lessons.Where(x => x.StartTime > low && x.StartTime < high);
+
+            foreach (var lesson in matchingLessons)
+            {
+                res += $"<div>{lesson.Course}<br>{lesson.Status}</div>";
+            }
+
+            res += "</td>";
+        }
+        res += "</tr>";
+    }
+    res += "</table>";
+    
+
+    return res;
+}
 class AttendanceData
 {
     public string Name { get; set; }
@@ -266,3 +308,4 @@ class Lesson
     public int MissingMinutes { get; set; }
 
 }
+
