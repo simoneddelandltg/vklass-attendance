@@ -1,0 +1,72 @@
+﻿body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    font-family: sans-serif;
+}
+
+table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 200mm;
+    margin: auto;
+    page-break-after: auto;
+}
+
+tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+}
+
+    tr:nth-child(2n+3) {
+        background-color: lightgrey;
+    }
+
+td, th {
+    border: solid 1px black;
+}
+
+td {
+    padding: 0.25rem 0;
+}
+
+th, .week {
+    background-color: rgb(176, 176, 176);
+    text-align: center;
+}
+
+h1 {
+    text-align: center;
+}
+
+.lesson {
+    margin: 0.25rem 0;
+    text-align: center;
+    font-size: 0.6rem;
+    color: white;
+}
+
+
+.Närvarande {
+    background-color: green;
+}
+
+.OgiltigFrånvaro {
+    background-color: darkred;
+}
+
+.GiltigFrånvaro {
+    background-color: rgb(255, 136, 156);
+}
+
+.lessontime {
+    font-size: 0.5rem;
+}
+
+@page {
+    size: A4;
+}
+
+.background-overlay {
+    padding: 0.25rem;
+    background: linear-gradient( to bottom, darkred var(--late), rgba(255, 255, 255, 0) var(--late) );
+}

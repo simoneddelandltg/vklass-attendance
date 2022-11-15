@@ -2,7 +2,9 @@
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
+using System;
 using System.Globalization;
+
 
 
 int maxStudents = 1000;
@@ -31,6 +33,7 @@ ChromeDriverService service = ChromeDriverService.CreateDefaultService();
 service.SuppressInitialDiagnosticInformation = true;
 service.HideCommandPromptWindow = true;
 IWebDriver driver = new ChromeDriver(service, options);
+Actions actions = new Actions(driver);
 
 // Go to login page
 driver.Navigate().GoToUrl("https://auth.vklass.se/organisation/189");
@@ -64,6 +67,8 @@ Console.WriteLine($"Hittade {resultLinkList.Count} st elever");
 DateTime startTime = DateTime.Now;
 Console.WriteLine("Start time: " + startTime.ToString("HH:mm:ss"));
 
+string studentOverview = File.ReadAllText("student-overview.html");
+
 foreach (var item in resultLinkList)
 {
     // Go to the students "Info & närvaro" page
@@ -93,9 +98,103 @@ foreach (var item in resultLinkList)
     studentAttendance.Name = name;
 
     // Scroll down a little bit for a better screenshot
-    var actions = new Actions(driver);
+
     actions.ScrollByAmount(0, 200).Perform();
 
+    // Get name of previous month
+    var previousLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_AttandanceOverviewControl_PreviousMonth")));
+    var previousMonthName = previousLink.Text.Split()[1];
+
+    // Get name of current month
+    var currentMonthSpan = wait.Until(e => e.FindElement(By.XPath("//a/following-sibling::span")));
+    var currentMonthName = currentMonthSpan.Text.Split()[0];
+    var currentYear = currentMonthSpan.Text.Split()[1];
+
+    // Get all lessons in current month
+    var lessonList = GetLessonsOnCurrentPage();
+
+    // Get lessons from previous month
+    previousLink.Click();
+    Thread.Sleep(1000);
+    var previousMonthsLessons = GetLessonsOnCurrentPage();
+    var allLessons = lessonList.Concat(previousMonthsLessons).DistinctBy(x => x.StartTime).ToList();
+
+
+    /*
+    // Take a screenshot and save it in a folder on the desktop
+    Screenshot ss = ((ITakesScreenshot)driver).GetScreenshot();
+    ss.SaveAsFile($"{saveFolder + name + "-" + currentMonthName}.png", ScreenshotImageFormat.Png);
+
+    // Take a screenshot of previous month
+    previousLink.Click();
+    Thread.Sleep(3000);
+    Screenshot ssPrev = ((ITakesScreenshot)driver).GetScreenshot();
+    ssPrev.SaveAsFile($"{saveFolder + name + "-" + previousMonthName}.png", ScreenshotImageFormat.Png);
+    */
+
+    // Save overview data
+    studentAttendance.Lessons = allLessons;
+    overviewList.Add(studentAttendance);
+    //Console.WriteLine($"{studentAttendance.Name}\t{studentAttendance.Attendance}\t{studentAttendance.ValidAbsence}\t{studentAttendance.InvalidAbsence}");
+
+
+    numStudents++;
+    if (numStudents >= maxStudents)
+    {
+        break;
+    }
+    else if (numStudents == 1)
+    {
+        var timeForOneStudent = DateTime.Now;
+        var estimatedTime = timeForOneStudent - startTime;
+        var finishTime = startTime + estimatedTime * resultLinkList.Count;
+        Console.WriteLine("Estimated total running time: " + (estimatedTime * resultLinkList.Count).ToString());
+        Console.WriteLine("Estimated finish time: " + finishTime.ToString("HH:mm"));
+        Console.WriteLine();
+    }
+
+
+    var studentFolder = saveFolder + studentAttendance.Name + "\\";
+    if (!Directory.Exists(studentFolder))
+    {
+        Directory.CreateDirectory(studentFolder);
+    }
+    
+
+    File.WriteAllText(studentFolder + "overview.html", studentOverview.Replace("%%STUDENT%%", studentAttendance.Name).Replace("%%CONTENT%%", GetHTMLAttendanceOverview(studentAttendance)));
+    File.Copy("student-overview.css", studentFolder + "student-overview.css", true);
+
+}
+
+
+string overviewTableRows = "";
+foreach (var item in overviewList)
+{
+    string rowClass = "";
+    if (item.Attendance <= 90)
+    {
+        rowClass = "medium-absence";
+    }
+    if (item.Attendance <= 80)
+    {
+        rowClass = "high-absence";
+    }
+    overviewTableRows += $"<tr class=\"{rowClass}\"><td><a href=\"{item.Name + "/overview.html"}\">{item.Name}</a></td><td>{item.Attendance.ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td><td>{Math.Round(100 - item.Attendance, 2).ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td><td>{item.ValidAbsence.ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td><td>{item.InvalidAbsence.ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td></tr>\n";
+}
+
+
+var overviewTemplate = File.ReadAllText("overview.html");
+var newOverview = overviewTemplate.Replace("%%OVERVIEW-DATA%%", overviewTableRows);
+newOverview = newOverview.Replace("%RUBRIK%", "Information hämtad " + DateTime.Now.ToString("yy-MM-dd HH:mm"));
+File.WriteAllText(saveFolder + "overview.html", newOverview);
+File.Copy("style.css", saveFolder + "style.css", true);
+File.Copy("sort-table.min.js", saveFolder + "sort-table.min.js", true);
+
+Console.WriteLine("Programmet avslutas...");
+driver.Quit();
+
+List<Lesson> GetLessonsOnCurrentPage()
+{
     // Get name of previous month
     var previousLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_AttandanceOverviewControl_PreviousMonth")));
     var previousMonthName = previousLink.Text.Split()[1];
@@ -122,10 +221,7 @@ foreach (var item in resultLinkList)
         dayList.Add(pDay.Text);
     }
 
-    //Console.WriteLine("All lessons hovered");
     var tooltipsAfter = driver.FindElements(By.ClassName("rtWrapperContent"));
-    //Console.WriteLine("Hittar " + tooltipsAfter.Count + " lektioner med info");
-    //Console.WriteLine();
     var lessonList = new List<Lesson>();
 
     for (int i = 0; i < tooltipsAfter.Count; i++)
@@ -150,7 +246,7 @@ foreach (var item in resultLinkList)
             }
             else if (line.Contains("Status"))
             {
-                
+
                 if (line.Length >= 8)
                 {
                     status = line[8..];
@@ -160,7 +256,7 @@ foreach (var item in resultLinkList)
                     status = "EjRapporterat";
                 }
             }
-            else if(line.Contains("<span"))
+            else if (line.Contains("<span"))
             {
                 int sInd = line.IndexOf(":: ") + 3;
                 int eInd = line.IndexOf(" min");
@@ -169,7 +265,7 @@ foreach (var item in resultLinkList)
         }
 
         var newLesson = new Lesson();
-        newLesson.StartTime = new DateTime(int.Parse(currentYear), months[currentMonthName], int.Parse(dayList[i]), int.Parse(clockInfo[..2]), int.Parse(clockInfo[3..5]),0);
+        newLesson.StartTime = new DateTime(int.Parse(currentYear), months[currentMonthName], int.Parse(dayList[i]), int.Parse(clockInfo[..2]), int.Parse(clockInfo[3..5]), 0);
         newLesson.StopTime = new DateTime(int.Parse(currentYear), months[currentMonthName], int.Parse(dayList[i]), int.Parse(clockInfo[8..10]), int.Parse(clockInfo[11..13]), 0);
         newLesson.Course = course;
         newLesson.Status = status == "Närvarande" ? LessonStatus.Närvarande : status.Contains("Giltigt") ? LessonStatus.GiltigFrånvaro : status.Contains("Ej") ? LessonStatus.EjRapporterat : LessonStatus.OgiltigFrånvaro;
@@ -177,70 +273,8 @@ foreach (var item in resultLinkList)
         lessonList.Add(newLesson);
     }
 
-    // END DEBUG!
-
-    /*
-    // Take a screenshot and save it in a folder on the desktop
-    Screenshot ss = ((ITakesScreenshot)driver).GetScreenshot();
-    ss.SaveAsFile($"{saveFolder + name + "-" + currentMonthName}.png", ScreenshotImageFormat.Png);
-
-    // Take a screenshot of previous month
-    previousLink.Click();
-    Thread.Sleep(3000);
-    Screenshot ssPrev = ((ITakesScreenshot)driver).GetScreenshot();
-    ssPrev.SaveAsFile($"{saveFolder + name + "-" + previousMonthName}.png", ScreenshotImageFormat.Png);
-    */
-
-    // Save overview data
-    studentAttendance.Lessons = lessonList;
-    overviewList.Add(studentAttendance);
-    //Console.WriteLine($"{studentAttendance.Name}\t{studentAttendance.Attendance}\t{studentAttendance.ValidAbsence}\t{studentAttendance.InvalidAbsence}");
-
-
-    numStudents++;
-    if (numStudents >= maxStudents)
-    {
-        break;
-    }
-    else if (numStudents == 1)
-    {
-        var timeForOneStudent = DateTime.Now;
-        var estimatedTime = timeForOneStudent - startTime;
-        var finishTime = startTime + estimatedTime * resultLinkList.Count;
-        Console.WriteLine("Estimated total running time: " + (estimatedTime * resultLinkList.Count).ToString());
-        Console.WriteLine("Estimated finish time: " + finishTime.ToString("HH:mm"));
-        Console.WriteLine(GetHTMLAttendanceOverview(studentAttendance));
-    }
-    
+    return lessonList;
 }
-
-
-string overviewTableRows = "";
-foreach (var item in overviewList)
-{
-    string rowClass = "";
-    if (item.Attendance <= 90)
-    {
-        rowClass = "medium-absence";
-    }
-    if (item.Attendance <= 80)
-    {
-        rowClass = "high-absence";
-    }
-    overviewTableRows += $"<tr class=\"{rowClass}\"><td>{item.Name}</td><td>{item.Attendance.ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td><td>{Math.Round(100 - item.Attendance, 2).ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td><td>{item.ValidAbsence.ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td><td>{item.InvalidAbsence.ToString(CultureInfo.CreateSpecificCulture("en-US"))}</td></tr>\n";
-}
-
-
-var overviewTemplate = File.ReadAllText("overview.html");
-var newOverview = overviewTemplate.Replace("%%OVERVIEW-DATA%%", overviewTableRows);
-newOverview = newOverview.Replace("%RUBRIK%", "Information hämtad " + DateTime.Now.ToString("yy-MM-dd HH:mm"));
-File.WriteAllText(saveFolder + "overview.html", newOverview);
-File.Copy("style.css", saveFolder + "style.css", true);
-File.Copy("sort-table.min.js", saveFolder + "sort-table.min.js", true);
-
-Console.WriteLine("Programmet avslutas...");
-driver.Quit();
-
 
 string GetHTMLAttendanceOverview(AttendanceData attendance)
 {
@@ -259,7 +293,7 @@ string GetHTMLAttendanceOverview(AttendanceData attendance)
     }
 
     res += "<table>\n" +
-        "\t<tr><td>Vecka</td><td>Måndag</td><td>Tisdag</td><td>Onsdag</td><td>Torsdag</td><td>Fredag</td></tr>\n";
+        "\t<tr><th width=\"50\">Vecka</th><th>Måndag</th><th>Tisdag</th><th>Onsdag</th><th>Torsdag</th><th>Fredag</th></tr>\n";
     // Loop through all weeks
     for (int week = startWeek; week <= endWeek; week++)
     {
@@ -268,7 +302,7 @@ string GetHTMLAttendanceOverview(AttendanceData attendance)
         {
             showWeek -= 52;
         }
-        res += $"\t<tr><td>{showWeek}</td>";
+        res += $"\t<tr><td class=\"week\">{showWeek}</td>";
         // Loop through Monday - Friday
         for (int i = 1; i <= 5; i++)
         {
@@ -278,9 +312,13 @@ string GetHTMLAttendanceOverview(AttendanceData attendance)
 
             var matchingLessons = attendance.Lessons.Where(x => x.StartTime > low && x.StartTime < high);
 
+
+
             foreach (var lesson in matchingLessons)
             {
-                res += $"<div class=\"{lesson.Status} lesson\"><div class=\"coursename\">{lesson.Course}</div><div class=\"lessontime\">{lesson.StartTime.ToString("HH:mm")} - {lesson.StopTime.ToString("HH:mm")}</div></div>\n";
+                var lessonLength = (lesson.StopTime - lesson.StartTime).TotalMinutes;
+                var fractionLate = (lesson.MissingMinutes / lessonLength) * 100;
+                res += $"<div class=\"{lesson.Status} lesson\"><div class=\"background-overlay\" style=\"--late: {fractionLate}%\"><div class=\"coursename\">{lesson.Course}</div><div class=\"lessontime\">{lesson.StartTime.ToString("HH:mm")} - {lesson.StopTime.ToString("HH:mm")}</div></div></div>\n";
             }
 
             res += "</td>";
