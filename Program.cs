@@ -253,31 +253,41 @@ string GetHTMLAttendanceOverview(AttendanceData attendance)
     int startYear = attendance.Lessons.First().StartTime.Year;
     int endYear = attendance.Lessons.Last().StartTime.Year;
 
-    res += "<table>" +
-        "<tr><td>Vecka</td><td>Måndag</td><td>Tisdag</td><td>Onsdag</td><td>Torsdag</td><td>Fredag</td></tr>";
+    if (endWeek < startWeek)
+    {
+        endWeek += 52;
+    }
+
+    res += "<table>\n" +
+        "\t<tr><td>Vecka</td><td>Måndag</td><td>Tisdag</td><td>Onsdag</td><td>Torsdag</td><td>Fredag</td></tr>\n";
     // Loop through all weeks
     for (int week = startWeek; week <= endWeek; week++)
     {
-        res += $"<tr><td>{week}</td>";
+        int showWeek = week;
+        if (showWeek > 52)
+        {
+            showWeek -= 52;
+        }
+        res += $"\t<tr><td>{showWeek}</td>";
         // Loop through Monday - Friday
         for (int i = 1; i <= 5; i++)
         {
             res += "<td>";
-            var low = ISOWeek.ToDateTime(startYear, week, (DayOfWeek)i);
-            var high = ISOWeek.ToDateTime(startYear, week, (DayOfWeek)(i + 1));
+            var low = ISOWeek.ToDateTime(startYear, showWeek, (DayOfWeek)i);
+            var high = ISOWeek.ToDateTime(startYear, showWeek, (DayOfWeek)(i + 1));
 
             var matchingLessons = attendance.Lessons.Where(x => x.StartTime > low && x.StartTime < high);
 
             foreach (var lesson in matchingLessons)
             {
-                res += $"<div>{lesson.Course}<br>{lesson.Status}</div>";
+                res += $"<div class=\"{lesson.Status} lesson\"><div class=\"coursename\">{lesson.Course}</div><div class=\"lessontime\">{lesson.StartTime.ToString("HH:mm")} - {lesson.StopTime.ToString("HH:mm")}</div></div>\n";
             }
 
             res += "</td>";
         }
-        res += "</tr>";
+        res += "</tr>\n";
     }
-    res += "</table>";
+    res += "</table>\n";
     
 
     return res;
