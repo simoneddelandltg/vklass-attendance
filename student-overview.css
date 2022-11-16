@@ -115,3 +115,7 @@ h1 {
 .overviewtable {
     page-break-after: always;
 }
+
+a {
+    color: #009879;
+}

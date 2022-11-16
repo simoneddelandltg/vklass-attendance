@@ -6,6 +6,7 @@
     min-width: 400px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
     margin: auto;
+    text-align: center;
 }
 
 th {
@@ -33,7 +34,6 @@ tr:last-of-type {
 main {
     max-width: 60rem;
     margin: auto;
-    text-align: center;
 }
 
 h1 {
@@ -50,5 +50,9 @@ h1 {
 }
 
 a {
-    color: blue;
+    color: #009879;
+}
+
+body {
+    font-family: sans-serif;
 }
