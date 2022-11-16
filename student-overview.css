@@ -1,13 +1,40 @@
-﻿body {
+﻿:root {
+    --present-color: rgb(138, 240, 138);
+    --valid-absence: rgb(251, 192, 202);
+    --invalid-absence: rgb(183, 20, 20);
+    --site-width: 200mm;
+}
+
+body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     font-family: sans-serif;
+    font-size: 0.8rem;
+}
+
+header {
+    margin: auto;
+    margin-bottom: 0.5rem;
+    width: var(--site-width);
+}
+
+.topinfo {
+    display: flex;
+    justify-content: space-between;
+}
+
+.topbox {
+    width: 1rem;
+}
+
+.colorbox {
+    display: flex;
 }
 
 table {
     border-collapse: collapse;
     table-layout: fixed;
-    width: 200mm;
+    width: var(--site-width);
     margin: auto;
     page-break-after: auto;
 }
@@ -18,7 +45,7 @@ tr {
 }
 
     tr:nth-child(2n+3) {
-        background-color: lightgrey;
+        background-color: rgb(226, 226, 226);
     }
 
 td, th {
@@ -30,8 +57,9 @@ td {
 }
 
 th, .week {
-    background-color: rgb(176, 176, 176);
+    background-color: rgb(199, 199, 199);
     text-align: center;
+    font-weight: bold;
 }
 
 h1 {
@@ -42,20 +70,24 @@ h1 {
     margin: 0.25rem 0;
     text-align: center;
     font-size: 0.6rem;
-    color: white;
 }
 
 
 .Närvarande {
-    background-color: green;
+    background-color: var(--present-color);
 }
 
 .OgiltigFrånvaro {
-    background-color: darkred;
+    background-color: var(--invalid-absence);
+    color: white;
 }
 
 .GiltigFrånvaro {
-    background-color: rgb(255, 136, 156);
+    background-color: var(--valid-absence);
+}
+
+.EjRapporterat {
+    background-color: white;
 }
 
 .lessontime {
@@ -68,5 +100,18 @@ h1 {
 
 .background-overlay {
     padding: 0.25rem;
-    background: linear-gradient( to bottom, darkred var(--late), rgba(255, 255, 255, 0) var(--late) );
+}
+
+.show-late {
+    background: linear-gradient( to bottom, var(--invalid-absence) var(--late), rgba(255, 255, 255, 0) var(--late) );
+}
+
+@media print {
+    .returnlink {
+        display: none;
+    }
+}
+
+.overviewtable {
+    page-break-after: always;
 }

@@ -48,3 +48,7 @@ h1 {
 .medium-absence {
     color: rgb(199, 131, 5);
 }
+
+a {
+    color: blue;
+}
