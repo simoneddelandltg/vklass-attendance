@@ -1,4 +1,5 @@
-﻿using OpenQA.Selenium;
+﻿using FrånvaroöversiktVKlass;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
@@ -25,6 +26,10 @@ months["Oktober"] = 10;
 months["November"] = 11;
 months["December"] = 12;
 
+// Update ChromeDriver if needed
+ChromeDriverInstaller installer = new ChromeDriverInstaller();
+var installProcess = installer.Install();
+await installProcess;
 
 // Initialize and open the ChromeDriver
 ChromeOptions options = new ChromeOptions();
@@ -43,6 +48,7 @@ driver.Navigate().GoToUrl("https://auth.vklass.se/organisation/189");
 Console.WriteLine("Detta program hjälper dig att få en grafisk frånvaroöversikt från VKlass.");
 Console.WriteLine("Programmet har öppnat ett nytt Chrome-fönster. Logga in på VKlass och gå till sidan \"Min Klass\".");
 Console.WriteLine("När programmet har kört klart kommer frånvaroöversikten ligga i mappen \"VKlass-frånvaro\" på skrivbordet.");
+Console.WriteLine();
 Console.WriteLine("Kom tillbaka till detta programfönster och tryck på tangenten \"Enter\" när du öppnat sidan \"Min klass\"");
 Console.ReadLine();
 Console.WriteLine("Börjar scanna efter elever...");
@@ -50,6 +56,7 @@ Console.WriteLine("Börjar scanna efter elever...");
 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
 
 // Set up savefolder
+string resourcesFolder = AppDomain.CurrentDomain.BaseDirectory + "\\Resources\\";
 string saveFolder = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\VKlass-frånvaro\\" + DateTime.Now.ToString("yyyy-MM-dd HH.mm") + "\\";
 
 if (!Directory.Exists(saveFolder))
@@ -70,7 +77,7 @@ foreach (var item in resultatsidor)
 
 
 var overviewList = new List<AttendanceData>();
-string studentOverview = File.ReadAllText("student-overview.html");
+string studentOverview = File.ReadAllText(resourcesFolder + "student-overview.html");
 var studentOverviewHTMLList = new List<string>();
 var startTime = DateTime.Now;
 
@@ -116,7 +123,9 @@ foreach (var item in resultLinkList)
 
     // Get lessons from previous month
     previousLink.Click();
-    Thread.Sleep(1000);
+    //Thread.Sleep(2000);
+    wait.Until(e => e.FindElement(By.LinkText("Visa " + currentMonthName)));
+    
     var previousMonthsLessons = GetLessonsOnCurrentPage();
     var allLessons = lessonList.Concat(previousMonthsLessons).DistinctBy(x => x.StartTime).ToList();
 
@@ -134,7 +143,7 @@ foreach (var item in resultLinkList)
     // Get students graphical overview and save it in the students folder
     var studentOverviewHTML = GetHTMLAttendanceOverview(studentAttendance);
     File.WriteAllText(studentFolder + "overview.html", studentOverview.Replace("%%STUDENT%%", studentAttendance.Name).Replace("%%BODY%%", studentOverviewHTML));
-    File.Copy("student-overview.css", studentFolder + "student-overview.css", true);
+    File.Copy(resourcesFolder + "student-overview.css", studentFolder + "student-overview.css", true);
 
     // Save student overview data for the "Hela Klassen" file
     studentOverviewHTMLList.Add(studentOverviewHTML);
@@ -152,7 +161,7 @@ foreach (var item in resultLinkList)
         var timeForOneStudent = DateTime.Now;
         var estimatedTime = (timeForOneStudent - startTime) * resultLinkList.Count;
         var finishTime = startTime + estimatedTime;
-        Console.WriteLine($"Uppskattad körtid: {(int)estimatedTime.TotalMinutes}:{estimatedTime.Seconds}");
+        Console.WriteLine($"Uppskattad körtid: {(int)estimatedTime.TotalMinutes} minuter och {estimatedTime.Seconds} sekunder");
         Console.WriteLine("Uppskattad tid när programmet har kört klart: " + finishTime.ToString("HH:mm"));
     }
 }
@@ -174,12 +183,12 @@ foreach (var item in overviewList)
 }
 
 // Save overview.html + necessary CSS and JS files
-var overviewTemplate = File.ReadAllText("overview.html");
+var overviewTemplate = File.ReadAllText(resourcesFolder + "overview.html");
 var newOverview = overviewTemplate.Replace("%%OVERVIEW-DATA%%", overviewTableRows);
 newOverview = newOverview.Replace("%RUBRIK%", "Frånvaroinformation hämtad från VKlass " + DateTime.Now.ToString("HH:mm dd") +"/"+DateTime.Now.ToString("MM-yy"));
 File.WriteAllText(saveFolder + "overview.html", newOverview);
-File.Copy("style.css", saveFolder + "style.css", true);
-File.Copy("sort-table.min.js", saveFolder + "sort-table.min.js", true);
+File.Copy(resourcesFolder + "style.css", saveFolder + "style.css", true);
+File.Copy(resourcesFolder + "sort-table.min.js", saveFolder + "sort-table.min.js", true);
 
 // Save a file containing every students graphical overview
 if (!Directory.Exists(saveFolder + "HelaKlassen\\"))
@@ -187,7 +196,7 @@ if (!Directory.Exists(saveFolder + "HelaKlassen\\"))
     Directory.CreateDirectory(saveFolder + "HelaKlassen\\");
 }
 File.WriteAllText(saveFolder + "HelaKlassen\\klassen.html", studentOverview.Replace("%%STUDENT%%", "Hela klassen").Replace("%%BODY%%", string.Join("",studentOverviewHTMLList)));
-File.Copy("student-overview.css", saveFolder + "HelaKlassen\\student-overview.css", true);
+File.Copy(resourcesFolder + "student-overview.css", saveFolder + "HelaKlassen\\student-overview.css", true);
 
 Console.WriteLine("Programmet avslutas...");
 driver.Quit();

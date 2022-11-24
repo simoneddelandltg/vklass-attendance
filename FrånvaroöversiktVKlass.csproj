@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -13,10 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="student-overview.css">
+    <Content Include="Resources\student-overview.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="student-overview.html">
+    <Content Include="Resources\student-overview.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -27,13 +27,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="overview.html">
+    <None Update="Resources\overview.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="sort-table.min.js">
+    <None Update="Resources\sort-table.min.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="style.css">
+    <None Update="Resources\style.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
