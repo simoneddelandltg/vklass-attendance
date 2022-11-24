@@ -10,4 +10,5 @@ Detta program hjälper dig att få en grafisk översikt av en elevs närvaro/fr�
 3. Packa upp zip-filen till en mapp på din dator.
 4. Öppna mappen där du packade upp zip-filen och dubbelklicka på genvägen **VKlass Frånvaroprogram**.
 5. Efter en liten stund öppnas ett textprogram samt ett nytt fönster av Google Chrome. Logga in på VKlass i chromefönstret och gå till sidan "Min Klass".
-6. Öppna textprogrammet som har startats och tryck på enter på tangentbordet. Programmet kommer nu att köra och skapa närvaroöversikten, detta tar drygt 5 minuter. När programmet är färdigt så stängs det ner och frånvaroöversikten ligger i mappen "VKlass-frånvaro" på ditt skrivbord.
+6. Öppna textprogrammet som har startats och tryck på enter på tangentbordet. Programmet kommer nu att köra och skapa närvaroöversikten, detta tar drygt 5 minuter.
+7. När programmet är färdigt så stängs det ner och frånvaroöversikten ligger i mappen "VKlass-frånvaro" på ditt skrivbord. Varje körning av programmet läggs i en egen mapp som döps efter den tid programmet kördes, inuti denna mapp ligger **overview** som du trycker på för att se översikten.
