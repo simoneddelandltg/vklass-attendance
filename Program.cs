@@ -3,6 +3,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
+using OpenQA.Selenium.Support;
 using System;
 using System.Globalization;
 
@@ -50,10 +51,11 @@ Console.WriteLine("Programmet har öppnat ett nytt Chrome-fönster. Logga in på
 Console.WriteLine("När programmet har kört klart kommer frånvaroöversikten ligga i mappen \"VKlass-frånvaro\" på skrivbordet.");
 Console.WriteLine();
 Console.WriteLine("Kom tillbaka till detta programfönster och tryck på tangenten \"Enter\" när du öppnat sidan \"Min klass\"");
-Console.ReadLine();
+string runOptions = Console.ReadLine();
+bool debugging = runOptions.Contains("debug");
 Console.WriteLine("Börjar scanna efter elever...");
 
-WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
 
 // Set up savefolder
 string resourcesFolder = AppDomain.CurrentDomain.BaseDirectory + "\\Resources\\";
@@ -99,7 +101,7 @@ foreach (var item in resultLinkList)
     var secondRow = overviewRows[1].Split();
     studentAttendance.ValidAbsence = double.Parse(secondRow[3]);
     studentAttendance.InvalidAbsence = double.Parse(secondRow[7]);
-
+    
     // Find "Månadsvy"-link and click on it
     var månadsvyLink = wait.Until(e => e.FindElement(By.XPath("//span[text()='Månadsvy']")));
     månadsvyLink.Click();
@@ -123,8 +125,46 @@ foreach (var item in resultLinkList)
 
     // Get lessons from previous month
     previousLink.Click();
-    //Thread.Sleep(2000);
-    wait.Until(e => e.FindElement(By.LinkText("Visa " + currentMonthName)));
+
+    // Wait for previous month to load
+    bool changeDetected = false;
+    var prevLinkText = previousLink.Text;
+    int n = 0;
+
+    while (!changeDetected)
+    {
+        var currentPrevLink = driver.FindElement(By.Id("ctl00_ContentPlaceHolder2_AttandanceOverviewControl_PreviousMonth"));
+        if (prevLinkText != currentPrevLink.Text)
+        {
+            changeDetected = true;
+            break;
+        }
+        n++;
+        
+        if (debugging)
+        {
+            Console.WriteLine("Run " + n + " failed after trying to load previous month");
+        }
+
+        if (n == 10)
+        {
+            if (debugging)
+            {
+                Console.WriteLine("Problem med att ladda föregående månad, försöker igen.");
+            }
+            
+            previousLink.Click();
+        }        
+        else if (n == 40)
+        {
+            if (debugging)
+            {
+                Console.WriteLine("Lyckas inte ladda föregående månad.");
+            }            
+        }
+        Thread.Sleep(1000);
+    }
+  
     
     var previousMonthsLessons = GetLessonsOnCurrentPage();
     var allLessons = lessonList.Concat(previousMonthsLessons).DistinctBy(x => x.StartTime).ToList();
