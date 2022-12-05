@@ -317,10 +317,43 @@ return answerArray
             }
         }
 
+
+        // IS THE ROW IN THE SECOND ROW IN TBODY? THEN IT !!!!MIGHT!!!! BELONG TO PREVIOUSMONTH
+        // IS IT IN THE LAST ROW IN TBODY? THEN IT !!!MIGHT!!! BELONG TO THE NEXT MONTH.
+        // CHECK DAY NUMBER (less than or larger than 15)
+        var month = months[currentMonthName];
+        var firstWeek = par.FindElement(By.XPath("./../../tr[position()=2]/td[1]"));
+        var currentWeekRow = par.FindElement(By.XPath("./../td[1]"));
+        var lastWeekRow = par.FindElement(By.XPath("./../../tr[last()]/td[1]"));
+        int year = int.Parse(currentYear);
+
+        // Does the lesson belong to the previous month?
+        if (currentWeekRow.Text == firstWeek.Text && int.Parse(day) > 15)
+        {
+            month--;
+            if (month <= 0)
+            {
+                year--;
+                month = 12;
+            }
+            
+        }
+        // Does the lesson belong to the next month?
+        if (lastWeekRow.Text == currentWeekRow.Text && int.Parse(day) < 15)
+        {       
+            month++;
+            if (month > 12)
+            {
+                year++;
+                month = 1;
+            }            
+        }
+
         // Create a lesson based on the information that was found
         var newLesson = new Lesson();
-        newLesson.StartTime = new DateTime(int.Parse(currentYear), months[currentMonthName], int.Parse(day), int.Parse(clockInfo[..2]), int.Parse(clockInfo[3..5]), 0);
-        newLesson.StopTime = new DateTime(int.Parse(currentYear), months[currentMonthName], int.Parse(day), int.Parse(clockInfo[8..10]), int.Parse(clockInfo[11..13]), 0);
+
+        newLesson.StartTime = new DateTime(year, month, int.Parse(day), int.Parse(clockInfo[..2]), int.Parse(clockInfo[3..5]), 0);
+        newLesson.StopTime = new DateTime(year, month, int.Parse(day), int.Parse(clockInfo[8..10]), int.Parse(clockInfo[11..13]), 0);
         newLesson.Course = course;
         newLesson.Status = status == "Närvarande" ? LessonStatus.Närvarande : status.Contains("Giltigt") ? LessonStatus.GiltigFrånvaro : status.Contains("Ej") ? LessonStatus.EjRapporterat : LessonStatus.OgiltigFrånvaro;
         newLesson.MissingMinutes = missingMinutes;
