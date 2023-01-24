@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Närvaroöversikt</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main>
+
+        <h1>%RUBRIK%</h1>
+        <p>Tabellen nedan visar frånvarostatistik för de senaste 30 dagarna. De grafiska översikterna för varje elev visar frånvaron för nuvarande och föregående månad.</p>
+        <p>
+            <a href="HelaKlassen/klassen.html">Hela klassen</a> kan ses samtidigt genom att följa länken, denna sida är anpassad för utskrift av en elevs frånvaroöversikt/utskriven sida.
+        </p>
+        <table class="js-sort-table">
+            <tr>
+                <th>Namn</th>
+                <th class="js-sort-number">Närvaro (%)</th>
+                <th class="js-sort-number">Total frånvaro (%)</th>
+                <th class="js-sort-number">Giltig frånvaro (%)</th>
+                <th class="js-sort-number">Ogiltigt frånvaro (%)</th>
+            </tr>
+            %%OVERVIEW-DATA%%
+        </table>
+
+
+    </main>
+    <script src="sort-table.min.js"></script>
+</body>
+</html>

@@ -5,6 +5,10 @@ VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrånvaroöversiktVKlass", "FrånvaroöversiktVKlass.csproj", "{B4EF5028-D4AE-4450-A0AE-B81EE6CDC744}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKlassAbsence", "..\VKlassAbsence\VKlassAbsence.csproj", "{ABB8CD5E-EB65-40E5-B64A-42694B67B791}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKlassGrafiskFrånvaro", "..\VKlassGrafiskFrånvaro\VKlassGrafiskFrånvaro.csproj", "{0D599CB1-29C7-4761-9ED5-E9CEC7DA7442}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{B4EF5028-D4AE-4450-A0AE-B81EE6CDC744}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4EF5028-D4AE-4450-A0AE-B81EE6CDC744}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4EF5028-D4AE-4450-A0AE-B81EE6CDC744}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABB8CD5E-EB65-40E5-B64A-42694B67B791}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABB8CD5E-EB65-40E5-B64A-42694B67B791}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABB8CD5E-EB65-40E5-B64A-42694B67B791}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABB8CD5E-EB65-40E5-B64A-42694B67B791}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D599CB1-29C7-4761-9ED5-E9CEC7DA7442}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D599CB1-29C7-4761-9ED5-E9CEC7DA7442}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D599CB1-29C7-4761-9ED5-E9CEC7DA7442}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D599CB1-29C7-4761-9ED5-E9CEC7DA7442}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

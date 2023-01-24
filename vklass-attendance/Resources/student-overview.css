@@ -1,0 +1,121 @@
+﻿:root {
+    --present-color: rgb(138, 240, 138);
+    --valid-absence: rgb(251, 192, 202);
+    --invalid-absence: rgb(183, 20, 20);
+    --site-width: 200mm;
+}
+
+body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    font-family: sans-serif;
+    font-size: 0.8rem;
+}
+
+header {
+    margin: auto;
+    margin-bottom: 0.5rem;
+    width: var(--site-width);
+}
+
+.topinfo {
+    display: flex;
+    justify-content: space-between;
+}
+
+.topbox {
+    width: 1rem;
+}
+
+.colorbox {
+    display: flex;
+}
+
+table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: var(--site-width);
+    margin: auto;
+    page-break-after: auto;
+}
+
+tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+}
+
+    tr:nth-child(2n+3) {
+        background-color: rgb(226, 226, 226);
+    }
+
+td, th {
+    border: solid 1px black;
+}
+
+td {
+    padding: 0.25rem 0;
+}
+
+th, .week {
+    background-color: rgb(199, 199, 199);
+    text-align: center;
+    font-weight: bold;
+}
+
+h1 {
+    text-align: center;
+}
+
+.lesson {
+    margin: 0.25rem 0;
+    text-align: center;
+    font-size: 0.6rem;
+}
+
+
+.Närvarande {
+    background-color: var(--present-color);
+}
+
+.OgiltigFrånvaro {
+    background-color: var(--invalid-absence);
+    color: white;
+}
+
+.GiltigFrånvaro {
+    background-color: var(--valid-absence);
+}
+
+.EjRapporterat {
+    background-color: white;
+}
+
+.lessontime {
+    font-size: 0.5rem;
+}
+
+@page {
+    size: A4;
+}
+
+.background-overlay {
+    padding: 0.25rem;
+}
+
+.show-late {
+    background: linear-gradient( to bottom, var(--invalid-absence) var(--late), rgba(255, 255, 255, 0) var(--late) );
+}
+
+@media print {
+    .returnlink {
+        display: none;
+    }
+}
+
+.overviewtable {
+    page-break-after: always;
+}
+
+a {
+    color: #009879;
+}
