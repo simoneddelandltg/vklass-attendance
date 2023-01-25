@@ -20,7 +20,7 @@ namespace VKlassAbsence
         // Change maxStudents for testing purposes to get an overview after only a few students have been processed
         int maxStudents = 10000;
         int numStudents = 0;
-        string resourcesFolder;
+        string resourcesFolder = "";
         string saveFolder;
 
         bool debugging;
@@ -31,7 +31,7 @@ namespace VKlassAbsence
         {
             InitializeValues();
             UpdateChromeDriver();
-            InitializeChromeDriver();
+
         }
 
         private void InitializeValues()
@@ -74,6 +74,7 @@ namespace VKlassAbsence
 
         public void StartChromeWindow()
         {
+            InitializeChromeDriver();
             driver.Navigate().GoToUrl("https://auth.vklass.se/organisation/189");
             
         }
@@ -89,7 +90,7 @@ namespace VKlassAbsence
             }
         }
 
-        public void GetAbsenceDataFromClass()
+        public async Task GetAbsenceDataFromClass()
         {
             // Make sure save folder exists
             SetupSaveFolder();
@@ -120,15 +121,17 @@ namespace VKlassAbsence
                 IWebElement närvaroLink = wait.Until(e => e.FindElement(By.LinkText("Närvaro")));
                 driver.Navigate().GoToUrl(närvaroLink.GetAttribute("href"));
 
+                var swedishCulture = new CultureInfo("sv-SE");
+
                 // Get attendance data for last 30 days
                 var studentAttendance = new AttendanceData();
                 var overviewElement = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_attendanceMinutesLabel")));
                 var overviewString = overviewElement.Text;
                 var overviewRows = overviewString.Split("\r\n");
-                studentAttendance.Attendance = double.Parse(overviewRows[0].Split()[0]);
+                studentAttendance.Attendance = double.Parse(overviewRows[0].Split()[0], swedishCulture);
                 var secondRow = overviewRows[1].Split();
-                studentAttendance.ValidAbsence = double.Parse(secondRow[3]);
-                studentAttendance.InvalidAbsence = double.Parse(secondRow[7]);
+                studentAttendance.ValidAbsence = double.Parse(secondRow[3], swedishCulture);
+                studentAttendance.InvalidAbsence = double.Parse(secondRow[7], swedishCulture);
 
                 // Find "Månadsvy"-link and click on it
                 var månadsvyLink = wait.Until(e => e.FindElement(By.XPath("//span[text()='Månadsvy']")));
