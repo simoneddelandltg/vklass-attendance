@@ -34,9 +34,10 @@ namespace VKlassGrafiskFrånvaro
             vklass.StartChromeWindow();
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private async void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            vklass.GetAbsenceDataFromClass();
+            //await vklass.GetAbsenceDataFromClass();
+            await Task.Run(() => vklass.GetAbsenceDataFromClass());
         }
     }
 }
