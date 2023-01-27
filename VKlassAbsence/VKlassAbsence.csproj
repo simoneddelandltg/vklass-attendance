@@ -7,8 +7,34 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\student-overview.css" />
+    <None Remove="Resources\student-overview.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\student-overview.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\student-overview.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Selenium.WebDriver" Version="4.8.0" />
     <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="109.0.5414.7400" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\overview.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\sort-table.min.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\style.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

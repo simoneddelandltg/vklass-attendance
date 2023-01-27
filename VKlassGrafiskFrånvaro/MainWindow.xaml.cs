@@ -22,16 +22,20 @@ namespace VKlassGrafiskFrånvaro
     public partial class MainWindow : Window
     {
         VKlassChartCreator vklass;
+        TextBlock infoBlock;
 
         public MainWindow()
         {
+            infoBlock = FindName("InfoBlock") as TextBlock;
             InitializeComponent();
             vklass = new VKlassChartCreator();
+            
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             vklass.StartChromeWindow();
+            infoBlock.Text += "\nFönster startat";
         }
 
         private async void Button_Click_1(object sender, RoutedEventArgs e)

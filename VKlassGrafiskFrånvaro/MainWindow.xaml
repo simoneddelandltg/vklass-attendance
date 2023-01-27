@@ -5,10 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VKlassGrafiskFrånvaro"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Frånvaroöversikt VKLass" Height="450" Width="800">
     <Grid>
-        <Button Content="Starta Selenium" HorizontalAlignment="Left" Margin="230,179,0,0" VerticalAlignment="Top" Click="Button_Click"/>
-        <Button Content="Hämta frånvaroöversikt" HorizontalAlignment="Left" Margin="515,179,0,0" VerticalAlignment="Top" Click="Button_Click_1"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50*"/>
+            <ColumnDefinition Width="35*"/>
+            <ColumnDefinition Width="53*"/>
+            <ColumnDefinition Width="662*"/>
+        </Grid.ColumnDefinitions>
+        <Button Content="Starta Selenium" HorizontalAlignment="Left" Margin="88,164,0,0" VerticalAlignment="Top" Click="Button_Click" Grid.Column="3"/>
+        <Button Content="Hämta frånvaroöversikt" HorizontalAlignment="Left" Margin="313,164,0,0" VerticalAlignment="Top" Click="Button_Click_1" Grid.Column="3"/>
+        <TextBlock Grid.Column="3" HorizontalAlignment="Left" Margin="313,204,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="114" Width="92" Name="InfoBlock"/>
 
 
     </Grid>
