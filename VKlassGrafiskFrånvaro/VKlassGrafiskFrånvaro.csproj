@@ -5,7 +5,13 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+	<IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+	<ApplicationIcon>icons8-calendar-64.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="icons8-calendar-64.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\VKlassAbsence\VKlassAbsence.csproj" />

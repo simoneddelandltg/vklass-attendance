@@ -30,8 +30,6 @@ namespace VKlassAbsence
         public VKlassChartCreator()
         {
             InitializeValues();
-            UpdateChromeDriver();
-
         }
 
         private void InitializeValues()
@@ -48,14 +46,6 @@ namespace VKlassAbsence
             months["Oktober"] = 10;
             months["November"] = 11;
             months["December"] = 12;
-        }
-
-        private async void UpdateChromeDriver()
-        {
-            // Update ChromeDriver if needed
-            ChromeDriverInstaller installer = new ChromeDriverInstaller();
-            var installProcess = installer.Install();
-            await installProcess;
         }
 
         private void InitializeChromeDriver()
@@ -76,7 +66,6 @@ namespace VKlassAbsence
         {
             InitializeChromeDriver();
             driver.Navigate().GoToUrl("https://auth.vklass.se/organisation/189");
-            
         }
 
         private void SetupSaveFolder()
@@ -90,10 +79,12 @@ namespace VKlassAbsence
             }
         }
 
-        public async Task GetAbsenceDataFromClass()
+        public async Task GetAbsenceDataFromClass(IProgress<AbsenceProgress> progress)
         {
+            driver.Navigate().GoToUrl("https://www.vklass.se/classlist.aspx");
+
             // Make sure save folder exists
-            SetupSaveFolder();
+            SetupSaveFolder();            
 
             // Get links to all student pages
             var resultatsidor = wait.Until(e => e.FindElements(By.LinkText("Info & resultat")));
@@ -110,6 +101,8 @@ namespace VKlassAbsence
             string studentOverview = File.ReadAllText(resourcesFolder + "student-overview.html");
             var studentOverviewHTMLList = new List<string>();
             var startTime = DateTime.Now;
+
+            progress.Report(new AbsenceProgress() { TotalStudents = resultLinkList.Count });
 
 
             foreach (var item in resultLinkList)
@@ -235,6 +228,8 @@ namespace VKlassAbsence
                     Console.WriteLine($"Uppskattad körtid: {(int)estimatedTime.TotalMinutes} minuter och {estimatedTime.Seconds} sekunder");
                     Console.WriteLine("Uppskattad tid när programmet har kört klart: " + finishTime.ToString("HH:mm"));
                 }
+
+                progress.Report(new AbsenceProgress() {FinishedStudents = numStudents, TotalStudents = resultLinkList.Count });
             }
 
 

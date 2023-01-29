@@ -19,12 +19,18 @@ namespace VKlassAbsence
             BaseAddress = new Uri("https://chromedriver.storage.googleapis.com/")
         };
 
-        public Task Install() => Install(null, false);
-        public Task Install(string chromeVersion) => Install(chromeVersion, false);
-        public Task Install(bool forceDownload) => Install(null, forceDownload);
+        public Task Install() => Install(null, false, null);
+        public Task Install(string chromeVersion) => Install(chromeVersion, false, null);
+        public Task Install(bool forceDownload) => Install(null, forceDownload, null);
 
-        public async Task Install(string chromeVersion, bool forceDownload)
+        public async Task Install(string chromeVersion, bool forceDownload, IProgress<double> progress)
         {
+            if (progress == null)
+            {
+                progress = new Progress<double>();
+            }
+            progress.Report(0);
+
             // Instructions from https://chromedriver.chromium.org/downloads/version-selection
             //   First, find out which version of Chrome you are using. Let's say you have Chrome 72.0.3626.81.
             if (chromeVersion == null)
@@ -99,6 +105,7 @@ namespace VKlassAbsence
                 existingChromeDriverVersion = existingChromeDriverVersion.Split(" ")[1];
                 if (chromeDriverVersion == existingChromeDriverVersion)
                 {
+                    progress.Report(-1);
                     return;
                 }
 
@@ -108,6 +115,7 @@ namespace VKlassAbsence
                 }
             }
 
+            progress.Report(1);
             //   Use the URL created in the last step to retrieve a small file containing the version of ChromeDriver to use. For example, the above URL will get your a file containing "72.0.3626.69". (The actual number may change in the future, of course.)
             //   Use the version number retrieved from the previous step to construct the URL to download ChromeDriver. With version 72.0.3626.69, the URL would be "https://chromedriver.storage.googleapis.com/index.html?path=72.0.3626.69/".
             var driverZipResponse = await httpClient.GetAsync($"{chromeDriverVersion}/{zipName}");
@@ -150,6 +158,8 @@ namespace VKlassAbsence
                     throw new Exception("Failed to make chromedriver executable");
                 }
             }
+
+            progress.Report(2);
         }
 
         public async Task<string> GetChromeVersion()
