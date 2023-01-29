@@ -64,7 +64,9 @@ namespace VKlassGrafiskFrånvaro
         }
 
         private async void OnLoad(object sender, RoutedEventArgs e)
-        {           
+        {
+            infoBlockBorder.Visibility = Visibility.Collapsed;
+
             // Update ChromeDriver if needed
             ChromeDriverInstaller installer = new ChromeDriverInstaller();
             Progress<double> progress = new Progress<double>();
@@ -73,7 +75,10 @@ namespace VKlassGrafiskFrånvaro
             var installProcess = installer.Install(null, false, progress);
             await installProcess;
             InfoBlock.Text += "\nChromeDriver uppdaterad";
-            startSeleniumButton.IsEnabled = true;
+            section2.IsEnabled = true;
+            section2.BorderBrush = Brushes.ForestGreen;
+            section1.IsEnabled = false;
+            section1.BorderBrush = Brushes.Black;
         }
 
         private void HandleChromedriverInstallProgress(object? sender, double e)
@@ -105,25 +110,53 @@ namespace VKlassGrafiskFrånvaro
         {
             vklass.StartChromeWindow();
             InfoBlock.Text += "\nFönster startat";
-            startSeleniumButton.IsEnabled = false;
-            selectDateAndGetAbsenceGrid.IsEnabled = true;
+            section2.IsEnabled = false;
+            section2.BorderBrush = Brushes.Black;
+            section3.IsEnabled = true;
+            section3.BorderBrush = Brushes.ForestGreen;
+            progressTextBlock.Text = "Frånvaroöversikten har inte börjat hämtas än.";
+            progressTextBlock.Foreground = Brushes.Black;
         }
 
         private async void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            //await vklass.GetAbsenceDataFromClass();
-            selectDateAndGetAbsenceGrid.IsEnabled = false;
+            
+            section3.IsEnabled = false;
+            section3.BorderBrush = Brushes.Black;
+            section4.IsEnabled = true;
+            section4.BorderBrush = Brushes.ForestGreen;
 
             Progress<AbsenceProgress> progress = new Progress<AbsenceProgress>();
             progress.ProgressChanged += HandleAbsenceProgress;
 
-            await Task.Run(() => vklass.GetAbsenceDataFromClass(progress));
+            var start = startDate.SelectedDate;
+            var end = endDate.SelectedDate;
+
+
+            await Task.Run(() => vklass.GetAbsenceDataFromClass(progress, start, end));
+            //await vklass.GetAbsenceDataFromClass(progress);
+
         }
 
         private void HandleAbsenceProgress(object? sender, AbsenceProgress e)
         {
             InfoBlock.Text += $"\n{e.FinishedStudents}/{e.TotalStudents}";
-            pbStatus.Value = Math.Round(100 * ((double)e.FinishedStudents) / e.TotalStudents);
+
+            if (e.FinishedStudents > e.TotalStudents)
+            {
+                progressTextBlock.Text = "Frånvaroöversikten är färdighämtad och ligger i mappen VKlass-frånvaro på ditt skrivbord!";
+                progressTextBlock.Foreground = Brushes.ForestGreen;
+                section4.IsEnabled = false;
+                section4.BorderBrush = Brushes.Black;
+                section2.IsEnabled = true;
+                section2.BorderBrush = Brushes.ForestGreen;
+            }
+            else
+            {
+                pbStatus.Value = Math.Round(100 * ((double)e.FinishedStudents) / e.TotalStudents);
+                progressTextBlock.Text = $"{e.FinishedStudents}/{e.TotalStudents} elever klara.";
+            }
+
         }
     }
 }

@@ -79,7 +79,7 @@ namespace VKlassAbsence
             }
         }
 
-        public async Task GetAbsenceDataFromClass(IProgress<AbsenceProgress> progress)
+        public async Task GetAbsenceDataFromClass(IProgress<AbsenceProgress> progress, DateTime? startDate, DateTime? endDate)
         {
             driver.Navigate().GoToUrl("https://www.vklass.se/classlist.aspx");
 
@@ -267,7 +267,8 @@ namespace VKlassAbsence
 
             Console.WriteLine("Programmet avslutas...");
             driver.Quit();
-
+            // One more than full = Run is complete
+            progress.Report(new AbsenceProgress() { FinishedStudents = resultLinkList.Count + 1, TotalStudents = resultLinkList.Count });
         }
 
 

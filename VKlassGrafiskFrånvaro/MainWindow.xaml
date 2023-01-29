@@ -6,17 +6,18 @@
         xmlns:local="clr-namespace:VKlassGrafiskFrånvaro"
         mc:Ignorable="d"
         Loaded="OnLoad"
-        Title="Frånvaroöversikt VKLass" Height="300" Width="800">
-    <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+        Title="Frånvaroöversikt VKLass" Height="400" Width="1000" ResizeMode="NoResize">
+    <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="165"/>
             <ColumnDefinition Width="261*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="300"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Center" Orientation="Horizontal">
             <StackPanel.Resources>
                 <Style TargetType="{x:Type Button}">
                     <Setter Property="Margin" Value="10"/>
@@ -25,34 +26,56 @@
                     <Setter Property="Margin" Value="10"/>
                 </Style>
             </StackPanel.Resources>
-            <Label x:Name="installerLabel" Foreground="#FFEA0505" Content="Letar efter uppdateringar..."></Label>
-            <Button x:Name="startSeleniumButton" Content="Starta Selenium" HorizontalAlignment="Left" Click="Button_Click" IsEnabled="False"/>
 
-            <Border BorderBrush="Black" BorderThickness="1" Padding="10,10,10,10" Margin="10,10,10,10">                        
-            <Grid x:Name="selectDateAndGetAbsenceGrid" IsEnabled="False">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                    <TextBlock Text="3. När du har loggat in i VKlass väljer du datum nedan och startar hämtningen." Grid.ColumnSpan="2" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                    <Label Content="Startdatum" Grid.Row="1"/>
-                <DatePicker x:Name="startDate" Grid.Row="1" Grid.Column="1" FirstDayOfWeek="Monday"></DatePicker>
-                <Label Content="Slutdatum" Grid.Row="2"></Label>
-                <DatePicker x:Name="endDate" Grid.Row="2" Grid.Column="2" FirstDayOfWeek="Monday"></DatePicker>
-                <Button Content="Hämta frånvaroöversikt" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button_Click_1" Name="GetKnapp" Grid.Row="3" Grid.ColumnSpan="2"/>
-            </Grid>
+            <Border x:Name="section1" BorderBrush="ForestGreen" BorderThickness="2" Padding="10,10,10,10" Margin="10,10,10,10" Width="200">
+                <StackPanel>
+                    <Label FontWeight="Bold">1. Uppdateringar</Label>
+                    <TextBlock TextWrapping="Wrap">Programmet kollar om det behöver uppdateras. Vänta tills texten nedan blir grön.</TextBlock>
+                    <Label x:Name="installerLabel" Foreground="#FFEA0505" Content="Letar efter uppdateringar..."/>
+                </StackPanel>
             </Border>
 
-            <ProgressBar x:Name="pbStatus" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="192"/>
+            <Border x:Name="section2" BorderBrush="Black" BorderThickness="2" Padding="10,10,10,10" Margin="10,10,10,10" Width="200"  IsEnabled="False">
+                <StackPanel>
+                    <Label FontWeight="Bold">2. Logga in i VKlass</Label>
+                    <Button x:Name="startSeleniumButton" Content="Starta Selenium" HorizontalAlignment="Center" Click="Button_Click" VerticalAlignment="Center"/>
+                    <TextBlock TextWrapping="Wrap">Tryck på knappen ovan och logga in i VKlass, fortsätt därefter med steg 3.</TextBlock>
+                </StackPanel>
+            </Border>
+
+            <Border x:Name="section3" BorderBrush="Black" BorderThickness="2" Padding="10,10,10,10" Margin="10,10,10,10" Width="200" IsEnabled="False">
+                <Grid x:Name="selectDateAndGetAbsenceGrid" VerticalAlignment="Top">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="70"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="100"/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Label Grid.ColumnSpan="2" FontWeight="Bold">3. Välj tidsintervall</Label>
+                    <TextBlock Grid.ColumnSpan="2" Grid.Row="1" TextWrapping="Wrap" Margin="0,0,0,0" Height="200"><Run Text="När du har loggat in i VKlass väljer du "/><Run Language="sv-se" Text="tidsintervall för frånvaroöversikten "/><Run Text="nedan och startar hämtningen."/></TextBlock>
+                    <Label Content="Startdatum" Grid.Row="2"/>
+                    <DatePicker x:Name="startDate" Grid.Row="2" Grid.Column="1" FirstDayOfWeek="Monday"></DatePicker>
+                    <Label Content="Slutdatum" Grid.Row="3"></Label>
+                    <DatePicker x:Name="endDate" Grid.Row="3" Grid.Column="2" FirstDayOfWeek="Monday"></DatePicker>
+                    <Button Content="Hämta frånvaroöversikt" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button_Click_1" Name="GetKnapp" Grid.Row="4" Grid.ColumnSpan="2"/>
+                </Grid>
+            </Border>
+
+            <Border x:Name="section4" BorderBrush="Black" BorderThickness="2" Padding="10,10,10,10" Margin="10,10,10,10" Width="200" IsEnabled="False">
+                <StackPanel>
+                    <Label FontWeight="Bold">4. Frånvaroöversikt hämtas</Label>
+                    <ProgressBar x:Name="pbStatus" HorizontalAlignment="Center" Height="20" VerticalAlignment="Top" Width="150"/>
+                    <TextBlock x:Name="progressTextBlock" TextWrapping="Wrap"><Run Text="Frånvaroöversikte"/><Run Language="sv-se" Text="n"/><Run Text=" har inte börjat hämtas än."/></TextBlock>
+                </StackPanel>
+            </Border>
         </StackPanel>
 
-        <Border BorderBrush="Black" BorderThickness="1" Height="168" Width="343" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="1" Margin="0,1,0,0">
+        <Border x:Name="infoBlockBorder" BorderBrush="Black" BorderThickness="1" Height="168" Width="343" HorizontalAlignment="Left" Grid.Column="3" Grid.Row="2" Margin="0,1,0,-42">
             <ScrollViewer>
                 <TextBlock TextWrapping="Wrap" VerticalAlignment="Top" x:Name="InfoBlock" ><Run Language="sv-se" Text="Test av textbox"/></TextBlock>
             </ScrollViewer>
