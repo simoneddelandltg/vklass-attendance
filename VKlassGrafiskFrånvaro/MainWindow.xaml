@@ -38,7 +38,7 @@
             <Border x:Name="section2" BorderBrush="Black" BorderThickness="2" Padding="10,10,10,10" Margin="10,10,10,10" Width="200"  IsEnabled="False">
                 <StackPanel>
                     <Label FontWeight="Bold">2. Logga in i VKlass</Label>
-                    <Button x:Name="startSeleniumButton" Content="Starta Selenium" HorizontalAlignment="Center" Click="Button_Click" VerticalAlignment="Center"/>
+                    <Button x:Name="startSeleniumButton" Content="Öppna chromefönstret" HorizontalAlignment="Center" Click="Button_Click" VerticalAlignment="Center"/>
                     <TextBlock TextWrapping="Wrap">Tryck på knappen ovan och logga in i VKlass, fortsätt därefter med steg 3.</TextBlock>
                 </StackPanel>
             </Border>

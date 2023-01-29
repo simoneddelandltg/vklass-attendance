@@ -104,6 +104,34 @@ namespace VKlassAbsence
 
             progress.Report(new AbsenceProgress() { TotalStudents = resultLinkList.Count });
 
+            // Calculate which months we need to collect data from
+            bool allMonthsNeededCollected = false;
+
+            // Is the last date available on the month before its "real" month?            
+            var endDateCopy = endDate.Value;
+            if (endDateCopy.DayOfWeek == DayOfWeek.Sunday)
+            {
+                endDateCopy = endDateCopy.AddDays(-1);
+            }
+            if (endDateCopy.DayOfWeek > (DayOfWeek)1)
+            {
+                while (endDateCopy.DayOfWeek != DayOfWeek.Monday)
+                {
+                    endDateCopy = endDateCopy.AddDays(-1);
+                }
+            }
+
+            // Check the same for the startDate
+            // TODO!!!!!!!
+            var startDateCopy = startDate.Value;
+            if (startDateCopy.DayOfWeek < (DayOfWeek)5 && startDateCopy.DayOfWeek > (DayOfWeek)0)
+            {
+                while (startDateCopy.DayOfWeek != DayOfWeek.Friday)
+                {
+                    startDateCopy = startDateCopy.AddDays(1);
+                }
+            }
+            
 
             foreach (var item in resultLinkList)
             {
@@ -135,63 +163,87 @@ namespace VKlassAbsence
                 var name = nameLink.Text;
                 studentAttendance.Name = name;
 
-                // Get name of previous month
-                var previousLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_AttandanceOverviewControl_PreviousMonth")));
-                var previousMonthName = previousLink.Text.Split()[1];
+                bool allDataGathered = false;
+                List<Lesson> allLessons = new List<Lesson>();
+                bool dataGatheringHasBegun = false;
 
-                // Get name of current month
-                var currentMonthSpan = wait.Until(e => e.FindElement(By.XPath("//a/following-sibling::span")));
-                var currentMonthName = currentMonthSpan.Text.Split()[0];
-                var currentYear = currentMonthSpan.Text.Split()[1];
-
-                // Get all lessons in current month
-                var lessonList = GetLessonsOnCurrentPage();
-
-                // Get lessons from previous month
-                previousLink.Click();
-
-                // Wait for previous month to load
-                bool changeDetected = false;
-                var prevLinkText = previousLink.Text;
-                int n = 0;
-
-                while (!changeDetected)
+                while (!allDataGathered)
                 {
-                    var currentPrevLink = driver.FindElement(By.Id("ctl00_ContentPlaceHolder2_AttandanceOverviewControl_PreviousMonth"));
-                    if (prevLinkText != currentPrevLink.Text)
+                    // Get name of previous month
+                    var previousLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_AttandanceOverviewControl_PreviousMonth")));
+                    var previousMonthName = previousLink.Text.Split()[1];
+
+                    // Get name of current month
+                    var currentMonthSpan = wait.Until(e => e.FindElement(By.XPath("//a/following-sibling::span")));
+                    var currentMonthName = currentMonthSpan.Text.Split()[0];
+                    var currentYear = currentMonthSpan.Text.Split()[1];
+
+                    if (int.Parse(currentYear) == endDateCopy.Year && months[currentMonthName] == endDateCopy.Month)
                     {
-                        changeDetected = true;
-                        break;
+                        dataGatheringHasBegun = true;
                     }
-                    n++;
 
-                    if (debugging)
+                    // Get all lessons in current month
+                    if (dataGatheringHasBegun)
                     {
-                        Console.WriteLine("Run " + n + " failed after trying to load previous month");
+                        var lessonList = GetLessonsOnCurrentPage();
+                        allLessons = allLessons.Concat(lessonList).DistinctBy(x => x.StartTime).ToList();
                     }
 
-                    if (n == 10)
+                    if (int.Parse(currentYear) == startDateCopy.Year && months[currentMonthName] == startDateCopy.Month)
                     {
-                        if (debugging)
-                        {
-                            Console.WriteLine("Problem med att ladda föregående månad, försöker igen.");
-                        }
-
+                        // All data gathered
+                        allDataGathered = true;
+                    }
+                    else
+                    {
+                        // Click previous month link from previous month
                         previousLink.Click();
-                    }
-                    else if (n == 40)
-                    {
-                        if (debugging)
+
+                        // Wait for previous month to load
+                        bool changeDetected = false;
+                        var prevLinkText = previousLink.Text;
+                        int n = 0;
+
+                        while (!changeDetected)
                         {
-                            Console.WriteLine("Lyckas inte ladda föregående månad.");
+                            var currentPrevLink = driver.FindElement(By.Id("ctl00_ContentPlaceHolder2_AttandanceOverviewControl_PreviousMonth"));
+                            if (prevLinkText != currentPrevLink.Text)
+                            {
+                                changeDetected = true;
+                                break;
+                            }
+                            n++;
+
+                            if (debugging)
+                            {
+                                Console.WriteLine("Run " + n + " failed after trying to load previous month");
+                            }
+
+                            if (n == 10)
+                            {
+                                if (debugging)
+                                {
+                                    Console.WriteLine("Problem med att ladda föregående månad, försöker igen.");
+                                }
+
+                                previousLink.Click();
+                            }
+                            else if (n == 40)
+                            {
+                                if (debugging)
+                                {
+                                    Console.WriteLine("Lyckas inte ladda föregående månad.");
+                                }
+                            }
+                            Thread.Sleep(1000);
                         }
                     }
-                    Thread.Sleep(1000);
-                }
+                }    
 
 
-                var previousMonthsLessons = GetLessonsOnCurrentPage();
-                var allLessons = lessonList.Concat(previousMonthsLessons).DistinctBy(x => x.StartTime).ToList();
+                // Only select lessons that are between the start and end dates.
+                allLessons = allLessons.Where(x => x.StartTime > startDate && x.StartTime < (endDate + TimeSpan.FromHours(24))).ToList();
 
                 // Save overview data
                 studentAttendance.Lessons = allLessons;
