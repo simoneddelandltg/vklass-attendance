@@ -6,11 +6,11 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
 	<IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
-	<ApplicationIcon>icons8-calendar-64.ico</ApplicationIcon>
+	<ApplicationIcon>icons8-calendar-70.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="icons8-calendar-64.ico" />
+    <Content Include="icons8-calendar-70.ico" />
   </ItemGroup>
 
   <ItemGroup>
