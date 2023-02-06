@@ -133,7 +133,7 @@ namespace VKlassGrafiskFrånvaro
             var end = endDate.SelectedDate;
 
 
-            await Task.Run(() => vklass.GetAbsenceDataFromClass(progress, start, end));
+            await Task.Run(() => vklass.GetAbsenceDataFromClassByListOverview(progress, start, end));
             //await vklass.GetAbsenceDataFromClass(progress);
 
         }

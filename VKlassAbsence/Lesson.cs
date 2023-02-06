@@ -13,5 +13,6 @@ namespace VKlassAbsence
         public string Course { get; set; }
         public LessonStatus Status { get; set; }
         public int MissingMinutes { get; set; }
+        public int MissingValidMinutes { get; set; }
     }
 }
