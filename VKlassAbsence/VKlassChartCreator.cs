@@ -340,7 +340,7 @@ namespace VKlassAbsence
             foreach (var item in resultatsidor)
             {
                 string resultURL = item.GetAttribute("href");
-                resultLinkList.Add(resultURL);
+                resultLinkList.Add(resultURL.Replace("StudentResult", "UserAttendance"));
             }
 
             var overviewList = new List<AttendanceData>();
@@ -350,36 +350,11 @@ namespace VKlassAbsence
 
             progress.Report(new AbsenceProgress() { TotalStudents = resultLinkList.Count });
 
-            // Calculate which months we need to collect data from
-            bool allMonthsNeededCollected = false;
-
             // Is the last date available on the month before its "real" month?            
             var endDateCopy = endDate.Value;
-            if (endDateCopy.DayOfWeek == DayOfWeek.Sunday)
-            {
-                endDateCopy = endDateCopy.AddDays(-1);
-            }
-            if (endDateCopy.DayOfWeek > (DayOfWeek)1)
-            {
-                while (endDateCopy.DayOfWeek != DayOfWeek.Monday)
-                {
-                    endDateCopy = endDateCopy.AddDays(-1);
-                }
-            }
 
             // Check the same for the startDate
             var startDateCopy = startDate.Value;
-            if (startDateCopy.DayOfWeek < (DayOfWeek)5 && startDateCopy.DayOfWeek > (DayOfWeek)0)
-            {
-                while (startDateCopy.DayOfWeek != DayOfWeek.Friday)
-                {
-                    startDateCopy = startDateCopy.AddDays(1);
-                }
-            }
-
-            // TODO: CHANGE LATER
-            startDateCopy = startDate.Value;
-            endDateCopy = endDate.Value;
 
 
             foreach (var item in resultLinkList)
@@ -387,14 +362,12 @@ namespace VKlassAbsence
                 // Go to the students "Info & närvaro" page
                 driver.Navigate().GoToUrl(item);
 
-                // Go to "Närvaro"
-                IWebElement närvaroLink = wait.Until(e => e.FindElement(By.LinkText("Närvaro")));
-                driver.Navigate().GoToUrl(närvaroLink.GetAttribute("href"));
-
                 var swedishCulture = new CultureInfo("sv-SE");
 
-                // Get attendance data for last 30 days
                 var studentAttendance = new AttendanceData();
+
+                /*
+                // Get attendance data for last 30 days                
                 var overviewElement = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_attendanceMinutesLabel")));
                 var overviewString = overviewElement.Text;
                 var overviewRows = overviewString.Split("\r\n");
@@ -402,6 +375,7 @@ namespace VKlassAbsence
                 var secondRow = overviewRows[1].Split();
                 studentAttendance.ValidAbsence = double.Parse(secondRow[3], swedishCulture);
                 studentAttendance.InvalidAbsence = double.Parse(secondRow[7], swedishCulture);
+                */
 
                 // Find "Hantera Närvaro"-link and click on it
                 var månadsvyLink = wait.Until(e => e.FindElement(By.XPath("//span[text()='Hantera närvaro']")));
@@ -412,118 +386,38 @@ namespace VKlassAbsence
                 var name = nameLink.Text;
                 studentAttendance.Name = name;
 
-                bool allDataGathered = false;
                 List<Lesson> allLessons = new List<Lesson>();
-                bool dataGatheringHasBegun = false;
-
-                // Select start date in DatePicker control
-                /*
-                var startDatePicker = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_StartDatePresence_popupButton")));           
-                startDatePicker.Click();
-
-                var startDateMonthAndYearButton = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_StartDatePresence_calendar_Title")));
-                startDateMonthAndYearButton.Click();
-
-                var startDateTable = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_StartDatePresence_calendar_FastNavPopup")));
-
-                var yearToClick = wait.Until(e => startDateTable.FindElement(By.LinkText(startDateCopy.Year.ToString())));
-                yearToClick.Click();
-
-                string monthIn3Letters = months.Where(kv => kv.Value == startDateCopy.Month).First().Key[0..3].ToLower();
-                var monthToClick = wait.Until(e => startDateTable.FindElement(By.LinkText(monthIn3Letters)));
-                monthToClick.Click();
-
-                var datePickerOKButton = wait.Until(e => e.FindElement(By.Id("rcMView_OK")));
-                datePickerOKButton.Click();
-
-                var startDateMonthOverviewTable = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_StartDatePresence_calendar_Top")));
-
-                // Find startdate link by text (date), parent can't have the class "rcOtherMonth"
-                var potentialStartDateLinks = wait.Until(e => startDateMonthOverviewTable.FindElements(By.LinkText(startDateCopy.Day.ToString())));
-                foreach (var dateLink in potentialStartDateLinks)
-                {
-                    var dateLinkParent = dateLink.FindElement(By.XPath("./.."));
-                    if (!dateLinkParent.GetAttribute("class").Contains("rcOtherMonth"))
-                    {
-                        // Correct link found
-                        dateLink.Click();
-                        break;
-                    }
-                }
-
-                // Select end date in DatePicker control
-                var endDatePicker = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_EndDatePresence_popupButton")));
-                endDatePicker.Click();
-
-                var endDateMonthAndYearButton = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_EndDatePresence_calendar_Title")));
-                endDateMonthAndYearButton.Click();
-
-                var endDateTable = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_EndDatePresence_calendar_FastNavPopup")));
-
-                var endYearToClick = wait.Until(e => endDateTable.FindElement(By.LinkText(endDateCopy.Year.ToString())));
-                endYearToClick.Click();
-
-                string endMonthIn3Letters = months.Where(kv => kv.Value == endDateCopy.Month).First().Key[0..3].ToLower();
-                var endMonthToClick = wait.Until(e => endDateTable.FindElement(By.LinkText(endMonthIn3Letters)));
-                endMonthToClick.Click();
-
-                var endDatePickerOKButton = wait.Until(e => e.FindElement(By.Id("rcMView_OK")));
-                endDatePickerOKButton.Click();
-
-                var endDateMonthOverviewTable = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_EndDatePresence_calendar_Top")));
-
-                // Find enddate link by text (date), parent can't have the class "rcOtherMonth"
-                var potentialEndDateLinks = wait.Until(e => endDateMonthOverviewTable.FindElements(By.LinkText(endDateCopy.Day.ToString())));
-                foreach (var dateLink in potentialEndDateLinks)
-                {
-                    var dateLinkParent = dateLink.FindElement(By.XPath("./.."));
-                    if (!dateLinkParent.GetAttribute("class").Contains("rcOtherMonth"))
-                    {
-                        // Correct link found
-                        dateLink.Click();
-                        break;
-                    }
-                }
-                */
-
+                 
                 // Just fill dates in boxes instead?
                 var jsExec = (IJavaScriptExecutor)driver;
                 string testScript =
 @$"let dateBox = document.getElementById(""ctl00_ContentPlaceHolder2_StartDatePresence_dateInput"");
 dateBox.value = """";
 dateBox.focus();
-document.execCommand(""insertText"", false, ""{startDateCopy.ToString("yyyy-MM-dd")} 00:00"");
+document.execCommand(""insertText"", false, ""{(startDateCopy.Subtract(TimeSpan.FromDays(47))).ToString("yyyy-MM-dd")} 02:02"");
+dateBox.value = """";
+dateBox.focus();
+document.execCommand(""insertText"", false, ""{startDateCopy.ToString("yyyy-MM-dd")} 01:01"");
 let dateBox2 = document.getElementById(""ctl00_ContentPlaceHolder2_EndDatePresence_dateInput"");
 dateBox2.value = """";
 dateBox2.focus();
-document.execCommand(""insertText"", false, ""{endDateCopy.ToString("yyyy-MM-dd")} 23:59"");
+document.execCommand(""insertText"", false, ""{(endDateCopy.Subtract(TimeSpan.FromDays(47))).ToString("yyyy-MM-dd")} 21:57"");
+dateBox2.value = """";
+dateBox2.focus();
+document.execCommand(""insertText"", false, ""{endDateCopy.ToString("yyyy-MM-dd")} 22:58"");
 ";
                 jsExec.ExecuteScript(testScript);
 
                 // Show lessons in the selected timespan
-                var showListButton = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")));
-                var oldBackLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_backLi")));                
+                var showListButton = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")));           
                 var radControls = jsExec.ExecuteScript(@"arguments[0].value = 'Visa ';", showListButton);
                 showListButton.Click();
-
+                //jsExec.ExecuteScript(@"arguments[0].click();", showListButton);
                 // Wait until page is updated
                 wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")).GetAttribute("value") == "Visa");
 
                 var presenceList = wait.Until(e => e.FindElement(By.Id("presenceList")));
                 var presenceListTBody = wait.Until(e => presenceList.FindElement(By.TagName("tbody")));
-
-                /*
-                var lessonRows = wait.Until(e => presenceListTBody.FindElements(By.TagName("tr")));
-                foreach (var lessonRow in lessonRows)
-                {
-                    var lessonCells = wait.Until(e => lessonRow.FindElements(By.TagName("td")));
-                    for (int i = 0; i < lessonCells.Count; i++)
-                    {
-                        string test = lessonCells[i].Text;
-                        test += "";
-                    }
-                }
-                */
 
                 string bodyText = presenceListTBody.GetAttribute("innerHTML").ReplaceLineEndings("");
                 //bodyText += "";
@@ -563,8 +457,29 @@ document.execCommand(""insertText"", false, ""{endDateCopy.ToString("yyyy-MM-dd"
                     newLesson.StartTime = new DateTime(int.Parse("20" + yearAndMonth[1]), monthForLesson, int.Parse(splitDateInfo[1]), int.Parse(startClock[0]), int.Parse(startClock[1]), 0);
                     newLesson.StopTime = new DateTime(int.Parse("20" + yearAndMonth[1]), monthForLesson, int.Parse(splitDateInfo[1]), int.Parse(endClock[0]), int.Parse(endClock[1]), 0);
 
+                    
                     studentAttendance.Lessons.Add(newLesson);
+                    progress.Report(new AbsenceProgress() { FinishedStudents = numStudents, TotalStudents = resultLinkList.Count });
                 }
+
+                // Calculate students attendance, valid absence and invalid absence for the time interval chosen
+                long totalLessonTime = (long)studentAttendance.Lessons.Where(x => x.Status != LessonStatus.EjRapporterat).Sum(x => (x.StopTime - x.StartTime).TotalMinutes);
+               
+                long validAbsenceTimeFromFullLessons = (long)studentAttendance.Lessons.Where(x => x.Status == LessonStatus.GiltigFrånvaro).Sum(x => (x.StopTime - x.StartTime).TotalMinutes);
+                long invalidAbsenceTimeFromFullLessons = (long)studentAttendance.Lessons.Where(x => x.Status == LessonStatus.OgiltigFrånvaro).Sum(x => (x.StopTime - x.StartTime).TotalMinutes);
+                
+                long validMissingMinutes = studentAttendance.Lessons.Where(x => x.Status == LessonStatus.Närvarande).Sum(x => x.MissingValidMinutes);
+                long invalidMissingMinutes = studentAttendance.Lessons.Where(x => x.Status == LessonStatus.Närvarande).Sum(x => x.MissingMinutes);
+
+                long totalInvalidMinutes = invalidAbsenceTimeFromFullLessons + invalidMissingMinutes;
+                long totalValidMinutes = validAbsenceTimeFromFullLessons + validMissingMinutes;
+                long totalAbsence = totalInvalidMinutes + totalValidMinutes;
+
+                studentAttendance.Attendance = Math.Round((totalLessonTime - totalAbsence) * 100 / (double)totalLessonTime, 1);
+                studentAttendance.ValidAbsence = Math.Round((totalValidMinutes * 100 / (double)totalLessonTime), 1);
+                studentAttendance.InvalidAbsence = Math.Round(totalInvalidMinutes * 100/ (double)totalLessonTime, 1);
+                
+
                 overviewList.Add(studentAttendance);
 
                 // Create a folder for this students graphical overview
@@ -582,27 +497,10 @@ document.execCommand(""insertText"", false, ""{endDateCopy.ToString("yyyy-MM-dd"
                 // Save student overview data for the "Hela Klassen" file
                 studentOverviewHTMLList.Add(studentOverviewHTML);
 
-
                 numStudents++;
-                // Break if maxstudents have been reached, only used for testing purposes
-                if (numStudents >= maxStudents)
-                {
-                    break;
-                }
-                // Print estimated runtime after one student has been processed
-                else if (numStudents == 1)
-                {
-                    var timeForOneStudent = DateTime.Now;
-                    var estimatedTime = (timeForOneStudent - startTime) * resultLinkList.Count;
-                    var finishTime = startTime + estimatedTime;
-                    Console.WriteLine($"Uppskattad körtid: {(int)estimatedTime.TotalMinutes} minuter och {estimatedTime.Seconds} sekunder");
-                    Console.WriteLine("Uppskattad tid när programmet har kört klart: " + finishTime.ToString("HH:mm"));
-                }
-
                 progress.Report(new AbsenceProgress() { FinishedStudents = numStudents, TotalStudents = resultLinkList.Count });
 
             }
-
 
             // Create rows for the table in the overview.html file
             string overviewTableRows = "";
@@ -623,6 +521,7 @@ document.execCommand(""insertText"", false, ""{endDateCopy.ToString("yyyy-MM-dd"
             // Save overview.html + necessary CSS and JS files
             var overviewTemplate = File.ReadAllText(resourcesFolder + "overview.html");
             var newOverview = overviewTemplate.Replace("%%OVERVIEW-DATA%%", overviewTableRows);
+            newOverview = newOverview.Replace("de senaste 30 dagarna", $"perioden {startDateCopy.ToString("yyyy-MM-dd")} till {endDateCopy.ToString("yyyy-MM-dd")}");
             newOverview = newOverview.Replace("%RUBRIK%", "Frånvaroinformation hämtad från VKlass " + DateTime.Now.ToString("HH:mm dd") + "/" + DateTime.Now.ToString("MM-yy"));
             File.WriteAllText(saveFolder + "overview.html", newOverview);
             File.Copy(resourcesFolder + "style.css", saveFolder + "style.css", true);
