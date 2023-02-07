@@ -487,19 +487,27 @@ namespace VKlassAbsence
                 */
 
                 // Just fill dates in boxes instead?
-
+                var jsExec = (IJavaScriptExecutor)driver;
+                string testScript =
+@$"let dateBox = document.getElementById(""ctl00_ContentPlaceHolder2_StartDatePresence_dateInput"");
+dateBox.value = """";
+dateBox.focus();
+document.execCommand(""insertText"", false, ""{startDateCopy.ToString("yyyy-MM-dd")} 00:00"");
+let dateBox2 = document.getElementById(""ctl00_ContentPlaceHolder2_EndDatePresence_dateInput"");
+dateBox2.value = """";
+dateBox2.focus();
+document.execCommand(""insertText"", false, ""{endDateCopy.ToString("yyyy-MM-dd")} 23:59"");
+";
+                jsExec.ExecuteScript(testScript);
 
                 // Show lessons in the selected timespan
                 var showListButton = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")));
-
-                // Wait until page is updated
-                var oldBackLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_backLi")));
-                var jsExec = (IJavaScriptExecutor)driver;
+                var oldBackLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_backLi")));                
                 var radControls = jsExec.ExecuteScript(@"arguments[0].value = 'Visa ';", showListButton);
                 showListButton.Click();
-                wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")).GetAttribute("value") == "Visa");
 
-                //TODO!!! Scan for lessons
+                // Wait until page is updated
+                wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")).GetAttribute("value") == "Visa");
 
                 var presenceList = wait.Until(e => e.FindElement(By.Id("presenceList")));
                 var presenceListTBody = wait.Until(e => presenceList.FindElement(By.TagName("tbody")));
