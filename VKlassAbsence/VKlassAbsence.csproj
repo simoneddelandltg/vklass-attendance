@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Content Include="Resources\student-overview.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\student-overview.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

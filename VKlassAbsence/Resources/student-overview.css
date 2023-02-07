@@ -103,7 +103,7 @@ h1 {
 }
 
 .show-late {
-    background: linear-gradient( to bottom, var(--invalid-absence) var(--late), rgba(255, 255, 255, 0) var(--late) );
+    background: linear-gradient( to bottom, var(--valid-absence) var(--valid-late), var(--invalid-absence) var(--valid-late) var(--late), rgba(255, 255, 255, 0) var(--late) );
 }
 
 @media print {

@@ -538,7 +538,7 @@ document.execCommand(""insertText"", false, ""{endDateCopy.ToString("yyyy-MM-dd"
             Console.WriteLine("Programmet avslutas...");
             driver.Quit();
             // One more than full = Run is complete
-            progress.Report(new AbsenceProgress() { FinishedStudents = resultLinkList.Count + 1, TotalStudents = resultLinkList.Count });
+            progress.Report(new AbsenceProgress() { FinishedStudents = resultLinkList.Count + 1, TotalStudents = resultLinkList.Count, PathToOverview = saveFolder + "HelaKlassen\\klassen.html" });
         }
 
 
@@ -718,8 +718,9 @@ return answerArray
                     foreach (var lesson in matchingLessons)
                     {
                         var lessonLength = (lesson.StopTime - lesson.StartTime).TotalMinutes;
-                        int fractionLate = (int)Math.Round(((lesson.MissingMinutes / lessonLength) * 100));
-                        res += $"<div class=\"{lesson.Status} lesson\"><div class=\"background-overlay{(fractionLate > 0 ? " show-late" : "")}\" style=\"--late: {fractionLate}%\"><div class=\"coursename\">{lesson.Course}</div>";
+                        int fractionLate = (int)Math.Round((((lesson.MissingMinutes + lesson.MissingValidMinutes) / lessonLength) * 100));
+                        int fractionValidLate = (int)Math.Round((((lesson.MissingValidMinutes) / lessonLength) * 100));
+                        res += $"<div class=\"{lesson.Status} lesson\"><div class=\"background-overlay{(fractionLate > 0 ? " show-late" : "")}\" style=\"--late: {fractionLate}%; --valid-late: {fractionValidLate}%\"><div class=\"coursename\">{lesson.Course}</div>";
                         res += $"</div></div>\n";
                     }
                     res += "</td>";

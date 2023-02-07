@@ -24,6 +24,8 @@ namespace VKlassGrafiskFrånvaro
     {
         VKlassChartCreator vklass;
 
+        string lastFilePath = "";
+
         public MainWindow()
         {
 
@@ -112,6 +114,9 @@ namespace VKlassGrafiskFrånvaro
             InfoBlock.Text += "\nFönster startat";
             section2.IsEnabled = false;
             section2.BorderBrush = Brushes.Black;
+            section4.IsEnabled = false;
+            section4.BorderBrush = Brushes.Black;
+            openBrowserButton.Visibility = Visibility.Hidden;
             section3.IsEnabled = true;
             section3.BorderBrush = Brushes.ForestGreen;
             progressTextBlock.Text = "Frånvaroöversikten har inte börjat hämtas än.";
@@ -146,10 +151,11 @@ namespace VKlassGrafiskFrånvaro
             {
                 progressTextBlock.Text = "Frånvaroöversikten är färdighämtad och ligger i mappen VKlass-frånvaro på ditt skrivbord!";
                 progressTextBlock.Foreground = Brushes.ForestGreen;
-                section4.IsEnabled = false;
-                section4.BorderBrush = Brushes.Black;
                 section2.IsEnabled = true;
                 section2.BorderBrush = Brushes.ForestGreen;
+                openBrowserButton.Visibility = Visibility.Visible;
+                openBrowserButton.IsEnabled = true;
+                lastFilePath = e.PathToOverview;
             }
             else
             {
@@ -157,6 +163,11 @@ namespace VKlassGrafiskFrånvaro
                 progressTextBlock.Text = $"{e.FinishedStudents}/{e.TotalStudents} elever klara.";
             }
 
+        }
+
+        private void openBrowserButton_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(lastFilePath);
         }
     }
 }

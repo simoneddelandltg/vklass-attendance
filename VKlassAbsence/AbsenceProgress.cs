@@ -11,6 +11,8 @@ namespace VKlassAbsence
         public int TotalStudents { get; set; } = 0;
         public int FinishedStudents { get; set; } = 0;
 
+        public string PathToOverview { get; set; } = "";
+
         public AbsenceProgress()
         {
 
