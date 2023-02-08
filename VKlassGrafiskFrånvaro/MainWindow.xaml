@@ -71,7 +71,9 @@
                     <Label FontWeight="Bold">4. Frånvaroöversikt hämtas</Label>
                     <ProgressBar x:Name="pbStatus" HorizontalAlignment="Center" Height="20" VerticalAlignment="Top" Width="150"/>
                     <TextBlock x:Name="progressTextBlock" TextWrapping="Wrap"><Run Text="Frånvaroöversikte"/><Run Language="sv-se" Text="n"/><Run Text=" har inte börjat hämtas än."/></TextBlock>
-                    <Button x:Name="openBrowserButton" Visibility="Collapsed" Click="openBrowserButton_Click">Öppna översikten</Button>
+                    <Label x:Name="timeElapsed">Tid: </Label>
+                    <Label x:Name="estimatedTime">Uppskattad körtid:</Label>
+                    <Button x:Name="openBrowserButton" Click="openBrowserButton_Click" IsEnabled="False">Öppna översikten</Button>
                 </StackPanel>
             </Border>
         </StackPanel>

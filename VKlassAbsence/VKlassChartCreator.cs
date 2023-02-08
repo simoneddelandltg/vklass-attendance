@@ -398,6 +398,7 @@ document.execCommand(""insertText"", false, ""{(startDateCopy.Subtract(TimeSpan.
 dateBox.value = """";
 dateBox.focus();
 document.execCommand(""insertText"", false, ""{startDateCopy.ToString("yyyy-MM-dd")} 01:01"");
+dateBox.dispatchEvent(new Event('change'));
 let dateBox2 = document.getElementById(""ctl00_ContentPlaceHolder2_EndDatePresence_dateInput"");
 dateBox2.value = """";
 dateBox2.focus();
@@ -405,6 +406,8 @@ document.execCommand(""insertText"", false, ""{(endDateCopy.Subtract(TimeSpan.Fr
 dateBox2.value = """";
 dateBox2.focus();
 document.execCommand(""insertText"", false, ""{endDateCopy.ToString("yyyy-MM-dd")} 22:58"");
+dateBox.focus();
+dateBox2.focus();
 ";
                 jsExec.ExecuteScript(testScript);
 

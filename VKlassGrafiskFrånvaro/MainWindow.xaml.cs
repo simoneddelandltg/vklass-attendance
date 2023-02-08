@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using VKlassAbsence;
 
 namespace VKlassGrafiskFrånvaro
@@ -23,6 +25,9 @@ namespace VKlassGrafiskFrånvaro
     public partial class MainWindow : Window
     {
         VKlassChartCreator vklass;
+        Stopwatch sw = new Stopwatch();
+
+        DispatcherTimer dt = new();
 
         string lastFilePath = "";
 
@@ -116,7 +121,7 @@ namespace VKlassGrafiskFrånvaro
             section2.BorderBrush = Brushes.Black;
             section4.IsEnabled = false;
             section4.BorderBrush = Brushes.Black;
-            openBrowserButton.Visibility = Visibility.Hidden;
+            openBrowserButton.IsEnabled = false;
             section3.IsEnabled = true;
             section3.BorderBrush = Brushes.ForestGreen;
             progressTextBlock.Text = "Frånvaroöversikten har inte börjat hämtas än.";
@@ -137,10 +142,29 @@ namespace VKlassGrafiskFrånvaro
             var start = startDate.SelectedDate;
             var end = endDate.SelectedDate;
 
+            sw.Restart();
+            dt.Interval = TimeSpan.FromMilliseconds(1000);
+            dt.Tick += Dt_Tick;
+            dt.Start();
 
-            await Task.Run(() => vklass.GetAbsenceDataFromClassByListOverview(progress, start, end));
+            try
+            {
+                await Task.Run(() => vklass.GetAbsenceDataFromClassByListOverview(progress, start, end));
+            }
+            catch (Exception f)
+            {
+                MessageBox.Show("Ett fel inträffade\n" + f.Message);
+                throw;
+            }
+
+            
             //await vklass.GetAbsenceDataFromClass(progress);
 
+        }
+
+        private void Dt_Tick(object? sender, EventArgs e)
+        {
+            timeElapsed.Content = "Tid: " + sw.Elapsed.ToString(@"mm\:ss");
         }
 
         private void HandleAbsenceProgress(object? sender, AbsenceProgress e)
@@ -156,18 +180,34 @@ namespace VKlassGrafiskFrånvaro
                 openBrowserButton.Visibility = Visibility.Visible;
                 openBrowserButton.IsEnabled = true;
                 lastFilePath = e.PathToOverview;
+                sw.Stop();
+                dt.Stop();
+                estimatedTime.Content = "Uppskattad körtid: " + sw.Elapsed.ToString(@"mm\:ss");
+                timeElapsed.Content = "Tid: " + sw.Elapsed.ToString(@"mm\:ss");
+                openBrowserButton.IsEnabled = true;
+
             }
             else
             {
                 pbStatus.Value = Math.Round(100 * ((double)e.FinishedStudents) / e.TotalStudents);
                 progressTextBlock.Text = $"{e.FinishedStudents}/{e.TotalStudents} elever klara.";
+                if (e.FinishedStudents > 0)
+                {
+                    estimatedTime.Content = "Uppskattad körtid: " + ((e.TotalStudents / (double)e.FinishedStudents) * sw.Elapsed).ToString(@"mm\:ss");
+                }
+                
             }
 
         }
 
         private void openBrowserButton_Click(object sender, RoutedEventArgs e)
         {
-            System.Diagnostics.Process.Start(lastFilePath);
+            var p = new Process();
+            p.StartInfo = new ProcessStartInfo(lastFilePath)
+            {
+                UseShellExecute = true
+            };
+            p.Start();
         }
     }
 }
