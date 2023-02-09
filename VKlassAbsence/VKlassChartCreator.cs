@@ -541,7 +541,7 @@ dateBox2.focus();
             Console.WriteLine("Programmet avslutas...");
             driver.Quit();
             // One more than full = Run is complete
-            progress.Report(new AbsenceProgress() { FinishedStudents = resultLinkList.Count + 1, TotalStudents = resultLinkList.Count, PathToOverview = saveFolder + "HelaKlassen\\klassen.html" });
+            progress.Report(new AbsenceProgress() { FinishedStudents = resultLinkList.Count + 1, TotalStudents = resultLinkList.Count, PathToOverview = saveFolder + "overview.html" });
         }
 
 
