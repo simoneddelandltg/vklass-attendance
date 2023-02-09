@@ -695,42 +695,48 @@ return answerArray
             // Sort all lessons by starttime
             attendance.Lessons.Sort((x, y) => x.StartTime.CompareTo(y.StartTime));
 
-            var time = attendance.Lessons.First().StartTime;
-            var stoptime = attendance.Lessons.Last().StopTime;
+
 
             // Start with table headers
             string res = "";
             res += "<table class=\"overviewtable\">\n" +
                 "\t<tr><th width=\"50\">Vecka</th><th>Måndag</th><th>Tisdag</th><th>Onsdag</th><th>Torsdag</th><th>Fredag</th></tr>\n";
 
-            // Loop through all lessons based on starttime, beginning with the first lesson and then looping 7 days ahead each run
-            for (DateTime dt = time; dt <= stoptime; dt += TimeSpan.FromDays(7))
+            if (attendance.Lessons.Count > 0)
             {
-                int showWeek = ISOWeek.GetWeekOfYear(dt);
-                res += $"\t<tr><td class=\"week\">{showWeek}</td>";
+                var time = attendance.Lessons.First().StartTime;
+                var stoptime = attendance.Lessons.Last().StopTime;
 
-                // Loop through Monday - Friday for this week
-                for (int i = 1; i <= 5; i++)
+                // Loop through all lessons based on starttime, beginning with the first lesson and then looping 7 days ahead each run
+                for (DateTime dt = time; dt <= stoptime; dt += TimeSpan.FromDays(7))
                 {
-                    res += "<td>";
-                    var low = ISOWeek.ToDateTime(dt.Year, showWeek, (DayOfWeek)i);
-                    var high = ISOWeek.ToDateTime(dt.Year, showWeek, (DayOfWeek)(i + 1));
+                    int showWeek = ISOWeek.GetWeekOfYear(dt);
+                    res += $"\t<tr><td class=\"week\">{showWeek}</td>";
 
-                    var matchingLessons = attendance.Lessons.Where(x => x.StartTime > low && x.StartTime < high);
-
-                    foreach (var lesson in matchingLessons)
+                    // Loop through Monday - Friday for this week
+                    for (int i = 1; i <= 5; i++)
                     {
-                        var lessonLength = (lesson.StopTime - lesson.StartTime).TotalMinutes;
-                        int fractionLate = (int)Math.Round((((lesson.MissingMinutes + lesson.MissingValidMinutes) / lessonLength) * 100));
-                        int fractionValidLate = (int)Math.Round((((lesson.MissingValidMinutes) / lessonLength) * 100));
-                        res += $"<div class=\"{lesson.Status} lesson\"><div class=\"background-overlay{(fractionLate > 0 ? " show-late" : "")}\" style=\"--late: {fractionLate}%; --valid-late: {fractionValidLate}%\"><div class=\"coursename\">{lesson.Course}</div>";
-                        res += $"</div></div>\n";
+                        res += "<td>";
+                        var low = ISOWeek.ToDateTime(dt.Year, showWeek, (DayOfWeek)i);
+                        var high = ISOWeek.ToDateTime(dt.Year, showWeek, (DayOfWeek)(i + 1));
+
+                        var matchingLessons = attendance.Lessons.Where(x => x.StartTime > low && x.StartTime < high);
+
+                        foreach (var lesson in matchingLessons)
+                        {
+                            var lessonLength = (lesson.StopTime - lesson.StartTime).TotalMinutes;
+                            int fractionLate = (int)Math.Round((((lesson.MissingMinutes + lesson.MissingValidMinutes) / lessonLength) * 100));
+                            int fractionValidLate = (int)Math.Round((((lesson.MissingValidMinutes) / lessonLength) * 100));
+                            res += $"<div class=\"{lesson.Status} lesson\"><div class=\"background-overlay{(fractionLate > 0 ? " show-late" : "")}\" style=\"--late: {fractionLate}%; --valid-late: {fractionValidLate}%\"><div class=\"coursename\">{lesson.Course}</div>";
+                            res += $"</div></div>\n";
+                        }
+                        res += "</td>";
                     }
-                    res += "</td>";
+                    res += "</tr>\n";
                 }
-                res += "</tr>\n";
+                res += "</table>\n";
             }
-            res += "</table>\n";
+         
 
             return template.Replace("%%STUDENT%%", attendance.Name).Replace("%%CONTENT%%", res);
         }
