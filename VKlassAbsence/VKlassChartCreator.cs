@@ -17,6 +17,7 @@ namespace VKlassAbsence
         Actions actions;
         ChromeDriverService service;
         WebDriverWait wait;
+        WebDriverWait shortWait;
 
         // Change maxStudents for testing purposes to get an overview after only a few students have been processed
         int maxStudents = 10000;
@@ -61,6 +62,7 @@ namespace VKlassAbsence
             driver = new ChromeDriver(service, options);
             actions = new Actions(driver);
             wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
+            shortWait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
         }
 
         public void StartChromeWindow()
@@ -359,39 +361,35 @@ namespace VKlassAbsence
 
             foreach (var item in resultLinkList)
             {
-                // Go to the students "Info & närvaro" page
-                driver.Navigate().GoToUrl(item);
+                bool pageLoadedCorrectly = false;
+                int numberOfTriesToLoadPage = 0;
+                int maxTries = 5;
 
                 var swedishCulture = new CultureInfo("sv-SE");
 
                 var studentAttendance = new AttendanceData();
 
-                /*
-                // Get attendance data for last 30 days                
-                var overviewElement = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_attendanceMinutesLabel")));
-                var overviewString = overviewElement.Text;
-                var overviewRows = overviewString.Split("\r\n");
-                studentAttendance.Attendance = double.Parse(overviewRows[0].Split()[0], swedishCulture);
-                var secondRow = overviewRows[1].Split();
-                studentAttendance.ValidAbsence = double.Parse(secondRow[3], swedishCulture);
-                studentAttendance.InvalidAbsence = double.Parse(secondRow[7], swedishCulture);
-                */
 
-                // Find "Hantera Närvaro"-link and click on it
-                var månadsvyLink = wait.Until(e => e.FindElement(By.XPath("//span[text()='Hantera närvaro']")));
-                månadsvyLink.Click();
+                while (!pageLoadedCorrectly && numberOfTriesToLoadPage < maxTries)
+                {
 
-                // Find student name
-                var nameLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_studentLink")));
-                var name = nameLink.Text;
-                studentAttendance.Name = name;
+                    // Go to the students "Info & närvaro" page
+                    driver.Navigate().GoToUrl(item);
+                    // Find "Hantera Närvaro"-link and click on it
+                    var månadsvyLink = wait.Until(e => e.FindElement(By.XPath("//span[text()='Hantera närvaro']")));
+                    månadsvyLink.Click();
 
-                List<Lesson> allLessons = new List<Lesson>();
-                 
-                // Just fill dates in boxes instead?
-                var jsExec = (IJavaScriptExecutor)driver;
-                string testScript =
-@$"let dateBox = document.getElementById(""ctl00_ContentPlaceHolder2_StartDatePresence_dateInput"");
+                    // Find student name
+                    var nameLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_studentLink")));
+                    var name = nameLink.Text;
+                    studentAttendance.Name = name;
+
+                    List<Lesson> allLessons = new List<Lesson>();
+
+                    // Just fill dates in boxes instead?
+                    var jsExec = (IJavaScriptExecutor)driver;
+                    string testScript =
+    @$"let dateBox = document.getElementById(""ctl00_ContentPlaceHolder2_StartDatePresence_dateInput"");
 dateBox.value = """";
 dateBox.focus();
 document.execCommand(""insertText"", false, ""{(startDateCopy.Subtract(TimeSpan.FromDays(47))).ToString("yyyy-MM-dd")} 02:02"");
@@ -409,15 +407,43 @@ document.execCommand(""insertText"", false, ""{endDateCopy.ToString("yyyy-MM-dd"
 dateBox.focus();
 dateBox2.focus();
 ";
-                jsExec.ExecuteScript(testScript);
+                    jsExec.ExecuteScript(testScript);
 
-                // Show lessons in the selected timespan
-                var showListButton = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")));           
-                var radControls = jsExec.ExecuteScript(@"arguments[0].value = 'Visa ';", showListButton);
-                showListButton.Click();
-                //jsExec.ExecuteScript(@"arguments[0].click();", showListButton);
-                // Wait until page is updated
-                wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")).GetAttribute("value") == "Visa");
+                    // Show lessons in the selected timespan
+                    var showListButton = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")));
+                    var radControls = jsExec.ExecuteScript(@"arguments[0].value = 'Visa ';", showListButton);
+                    showListButton.Click();
+
+                    // Wait until page is updated
+                    try
+                    {
+                        shortWait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")).GetAttribute("value") == "Visa");
+
+                    }
+                    catch (Exception e)
+                    {
+                        numberOfTriesToLoadPage++;
+                        if (numberOfTriesToLoadPage >= maxTries)
+                        {
+                            throw;
+                        }
+                        continue;
+                    }
+                    pageLoadedCorrectly = true;
+                }
+
+
+                /*
+                // Get attendance data for last 30 days                
+                var overviewElement = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_attendanceMinutesLabel")));
+                var overviewString = overviewElement.Text;
+                var overviewRows = overviewString.Split("\r\n");
+                studentAttendance.Attendance = double.Parse(overviewRows[0].Split()[0], swedishCulture);
+                var secondRow = overviewRows[1].Split();
+                studentAttendance.ValidAbsence = double.Parse(secondRow[3], swedishCulture);
+                studentAttendance.InvalidAbsence = double.Parse(secondRow[7], swedishCulture);
+                */
+
 
                 var presenceList = wait.Until(e => e.FindElement(By.Id("presenceList")));
                 var presenceListTBody = wait.Until(e => presenceList.FindElement(By.TagName("tbody")));
