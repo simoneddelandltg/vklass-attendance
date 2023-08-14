@@ -13,7 +13,7 @@
             <ColumnDefinition Width="261*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="60"/>
             <RowDefinition Height="300"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
@@ -29,9 +29,9 @@
 
             <Border x:Name="section1" BorderBrush="ForestGreen" BorderThickness="4" Padding="10,10,10,10" Margin="10,10,10,10" Width="200">
                 <StackPanel>
-                    <Label FontWeight="Bold">1. Uppdateringar</Label>
-                    <TextBlock TextWrapping="Wrap">Programmet kollar om det behöver uppdateras. Vänta tills texten nedan blir grön.</TextBlock>
-                    <Label x:Name="installerLabel" Foreground="#FFEA0505" Content="Letar efter uppdateringar..."/>
+                    <Label FontWeight="Bold" Content="1. Uppstart"/>
+                    <TextBlock TextWrapping="Wrap"><Run Text="Programmet "/><Run Language="sv-se" Text="laddar in de verktyg som behövs för att det ska fungera."/></TextBlock>
+                    <Label x:Name="installerLabel" Foreground="#FFEA0505" Content="Letar efter verktyg..."/>
                 </StackPanel>
             </Border>
 
@@ -71,7 +71,7 @@
                     <Label FontWeight="Bold">4. Frånvaroöversikt hämtas</Label>
                     <ProgressBar x:Name="pbStatus" HorizontalAlignment="Center" Height="20" VerticalAlignment="Top" Width="150"/>
                     <TextBlock x:Name="progressTextBlock" TextWrapping="Wrap"><Run Text="Frånvaroöversikte"/><Run Language="sv-se" Text="n"/><Run Text=" har inte börjat hämtas än."/></TextBlock>
-                    <Label x:Name="timeElapsed">Tid: </Label>
+                    <Label x:Name="timeElapsed">Tid:</Label>
                     <Label x:Name="estimatedTime">Uppskattad körtid:</Label>
                     <Button x:Name="openBrowserButton" Click="openBrowserButton_Click" IsEnabled="False">Öppna översikten</Button>
                 </StackPanel>
@@ -83,7 +83,12 @@
                 <TextBlock TextWrapping="Wrap" VerticalAlignment="Top" x:Name="InfoBlock" ><Run Language="sv-se" Text="Test av textbox"/></TextBlock>
             </ScrollViewer>
         </Border>
-
+        <TextBlock Name="newVersionBlock" Grid.Column="1" Grid.Row="0" TextAlignment="Left" Visibility="Hidden">Ny version tillgänglig!<LineBreak></LineBreak>
+            
+    <Hyperlink NavigateUri="https://github.com/simoneddelandltg/vklass-attendance/releases/latest/download/VKlass.Franvaroprogram.zip" RequestNavigate="Hyperlink_RequestNavigate">
+        Ladda ner ny version
+    </Hyperlink>
+        </TextBlock>
 
 
 

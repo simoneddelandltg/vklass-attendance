@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -14,9 +15,16 @@ namespace VKlassAbsence
     // Code copied from https://swimburger.net/blog/dotnet/download-the-right-chromedriver-version-and-keep-it-up-to-date-on-windows-linux-macos-using-csharp-dotnet
     public class ChromeDriverInstaller
     {
+        /*
         private static readonly HttpClient httpClient = new HttpClient
         {
             BaseAddress = new Uri("https://chromedriver.storage.googleapis.com/")
+        };
+        */
+
+        public static readonly HttpClient v115httpClient = new HttpClient
+        {
+
         };
 
         public Task Install() => Install(null, false, null);
@@ -41,6 +49,8 @@ namespace VKlassAbsence
             //   Take the Chrome version number, remove the last part, 
             chromeVersion = chromeVersion.Substring(0, chromeVersion.LastIndexOf('.'));
 
+            /*
+
             //   and append the result to URL "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_". 
             //   For example, with Chrome version 72.0.3626.81, you'd get a URL "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_72.0.3626".
             var chromeDriverVersionResponse = await httpClient.GetAsync($"LATEST_RELEASE_{chromeVersion}");
@@ -57,28 +67,51 @@ namespace VKlassAbsence
             }
 
             var chromeDriverVersion = await chromeDriverVersionResponse.Content.ReadAsStringAsync();
+            */
+
+            var versionJson = await v115httpClient.GetStringAsync("https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build-with-downloads.json");
+            dynamic versionInfo = JsonConvert.DeserializeObject(versionJson);
 
             string zipName;
             string driverName;
+            string platform;
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 zipName = "chromedriver_win32.zip";
                 driverName = "chromedriver.exe";
+                platform = "win32";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 zipName = "chromedriver_linux64.zip";
                 driverName = "chromedriver";
+                platform = "linux64";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 zipName = "chromedriver_mac64.zip";
                 driverName = "chromedriver";
+                platform = "mac-x64";
             }
             else
             {
                 throw new PlatformNotSupportedException("Your operating system is not supported.");
             }
+
+            string testing = "";
+
+            // Find URL for the correct platform
+            for (int i = 0; i < versionInfo.builds[chromeVersion].downloads.chromedriver.Count; i++)
+            {
+                if (versionInfo.builds[chromeVersion].downloads.chromedriver[i].platform == platform)
+                {
+                    testing = versionInfo.builds[chromeVersion].downloads.chromedriver[i].url;
+                    break;
+                }
+            }
+
+
 
             string targetPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             targetPath = Path.Combine(targetPath, driverName);
@@ -103,11 +136,13 @@ namespace VKlassAbsence
                 // expected output is something like "ChromeDriver 88.0.4324.96 (68dba2d8a0b149a1d3afac56fa74648032bcf46b-refs/branch-heads/4324@{#1784})"
                 // the following line will extract the version number and leave the rest
                 existingChromeDriverVersion = existingChromeDriverVersion.Split(" ")[1];
+                /*
                 if (chromeDriverVersion == existingChromeDriverVersion)
                 {
                     progress.Report(-1);
                     return;
                 }
+                */
 
                 if (!string.IsNullOrEmpty(error))
                 {
@@ -118,7 +153,10 @@ namespace VKlassAbsence
             progress.Report(1);
             //   Use the URL created in the last step to retrieve a small file containing the version of ChromeDriver to use. For example, the above URL will get your a file containing "72.0.3626.69". (The actual number may change in the future, of course.)
             //   Use the version number retrieved from the previous step to construct the URL to download ChromeDriver. With version 72.0.3626.69, the URL would be "https://chromedriver.storage.googleapis.com/index.html?path=72.0.3626.69/".
-            var driverZipResponse = await httpClient.GetAsync($"{chromeDriverVersion}/{zipName}");
+
+            HttpClient downloadClient = new HttpClient();
+            
+            var driverZipResponse = await downloadClient.GetAsync(testing);
             if (!driverZipResponse.IsSuccessStatusCode)
             {
                 throw new Exception($"ChromeDriver download request failed with status code: {driverZipResponse.StatusCode}, reason phrase: {driverZipResponse.ReasonPhrase}");
@@ -130,7 +168,7 @@ namespace VKlassAbsence
             using (var zipArchive = new ZipArchive(zipFileStream, ZipArchiveMode.Read))
             using (var chromeDriverWriter = new FileStream(targetPath, FileMode.Create))
             {
-                var entry = zipArchive.GetEntry(driverName);
+                var entry = zipArchive.GetEntry("chromedriver-win32/" + driverName);
                 using Stream chromeDriverStream = entry.Open();
                 await chromeDriverStream.CopyToAsync(chromeDriverWriter);
             }

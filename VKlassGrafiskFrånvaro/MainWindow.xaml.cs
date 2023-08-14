@@ -1,9 +1,13 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,6 +34,7 @@ namespace VKlassGrafiskFrånvaro
         DispatcherTimer dt = new();
 
         string lastFilePath = "";
+        static string currentVersionTag = "v1.3.0";
 
         public MainWindow()
         {
@@ -43,6 +48,7 @@ namespace VKlassGrafiskFrånvaro
             vklass = new VKlassChartCreator();
 
             SetDates();
+            
         }
 
         private void ConsoleUpdated(object sender, string e)
@@ -78,14 +84,36 @@ namespace VKlassGrafiskFrånvaro
             ChromeDriverInstaller installer = new ChromeDriverInstaller();
             Progress<double> progress = new Progress<double>();
 
+
             progress.ProgressChanged += HandleChromedriverInstallProgress;
-            var installProcess = installer.Install(null, false, progress);
-            await installProcess;
-            InfoBlock.Text += "\nChromeDriver uppdaterad";
-            section2.IsEnabled = true;
-            section2.BorderBrush = Brushes.ForestGreen;
-            section1.IsEnabled = false;
-            section1.BorderBrush = Brushes.Black;
+
+            try
+            {
+                var installProcess = installer.Install(null, true, progress);
+                await installProcess;
+                InfoBlock.Text += "\nChromeDriver uppdaterad";
+                section2.IsEnabled = true;
+                section2.BorderBrush = Brushes.ForestGreen;
+                section1.IsEnabled = false;
+                section1.BorderBrush = Brushes.Black;
+            }
+            catch (Exception exc)
+            {
+                installerLabel.Content = "Fel vid uppdatering av ChromeDriver:\n" + exc.Message;
+                installerLabel.Foreground = Brushes.Red;
+            }
+
+            ChromeDriverInstaller.v115httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("vklass-attendance", "1"));
+            var latestTag = await ChromeDriverInstaller.v115httpClient.GetStringAsync("https://api.github.com/repos/simoneddelandltg/vklass-attendance/releases/latest");
+            dynamic latestReleaseTag = JsonConvert.DeserializeObject(latestTag);
+
+            if (latestReleaseTag.tag_name != currentVersionTag)
+            {
+                newVersionBlock.Visibility = Visibility.Visible;
+            }
+
+            
+ 
         }
 
         private void HandleChromedriverInstallProgress(object? sender, double e)
@@ -95,17 +123,17 @@ namespace VKlassGrafiskFrånvaro
             switch (e)
             {
                 case -1:
-                    installerLabel.Content = "Inga uppdateringar behövdes";
+                    installerLabel.Content = "Inga verktyg behövde installeras";
                     installerLabel.Foreground = Brushes.Green;
                     break;
 
                 case 1:
-                    installerLabel.Content = "Laddar ner uppdaterad version...";
-                    installerLabel.Foreground = Brushes.Yellow;
+                    installerLabel.Content = "Laddar ner verktyg...";
+                    installerLabel.Foreground = Brushes.Orange;
                     break;
 
                 case 2:
-                    installerLabel.Content = "Uppdatering klar";
+                    installerLabel.Content = "Alla verktyg redo";
                     installerLabel.Foreground = Brushes.Green;
                     break;
                 default:
@@ -208,6 +236,22 @@ namespace VKlassGrafiskFrånvaro
                 UseShellExecute = true
             };
             p.Start();
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+
+
+            Process p = new Process()
+            {
+                StartInfo = new ProcessStartInfo()
+                {
+                    FileName = e.Uri.AbsoluteUri,
+                    UseShellExecute = true
+                }
+            };
+            p.Start();
+            e.Handled = true;
         }
     }
 }
