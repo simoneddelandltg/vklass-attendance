@@ -6,6 +6,7 @@ using OpenQA.Selenium.Support.UI;
 using OpenQA.Selenium.Support;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Microsoft.VisualBasic;
 
 namespace VKlassAbsence
 {
@@ -734,6 +735,11 @@ return answerArray
                 var stoptime = attendance.Lessons.Last().StopTime;
 
                 // Loop through all lessons based on starttime, beginning with the first lesson and then looping 7 days ahead each run
+
+                // BUT!!!!! WHAT IF THE FIRST LESSON IS NOT ON A MONDAY? TODO: FIX IT!
+                // dt needs to start at early morning on the monday in the same week as the first lesson, that is the variable "time".
+                time = ISOWeek.ToDateTime(time.Year, ISOWeek.GetWeekOfYear(time), DayOfWeek.Monday) + TimeSpan.FromHours(3);
+
                 for (DateTime dt = time; dt <= stoptime; dt += TimeSpan.FromDays(7))
                 {
                     int showWeek = ISOWeek.GetWeekOfYear(dt);
@@ -765,6 +771,7 @@ return answerArray
          
 
             return template.Replace("%%STUDENT%%", attendance.Name).Replace("%%CONTENT%%", res);
+            
         }
 
     }
