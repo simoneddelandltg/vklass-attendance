@@ -34,7 +34,7 @@ namespace VKlassGrafiskFrånvaro
         DispatcherTimer dt = new();
 
         string lastFilePath = "";
-        static string currentVersionTag = "v1.3.0";
+        static string currentVersionTag = "v1.3.1";
 
         public MainWindow()
         {
