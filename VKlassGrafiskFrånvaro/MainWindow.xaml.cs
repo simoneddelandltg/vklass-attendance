@@ -34,7 +34,7 @@ namespace VKlassGrafiskFrånvaro
         DispatcherTimer dt = new();
 
         string lastFilePath = "";
-        static string currentVersionTag = "v1.3.1";
+        static string currentVersionTag = "v1.3.2";
 
         public MainWindow()
         {
@@ -101,6 +101,7 @@ namespace VKlassGrafiskFrånvaro
             {
                 installerLabel.Content = "Fel vid uppdatering av ChromeDriver:\n" + exc.Message;
                 installerLabel.Foreground = Brushes.Red;
+                Debug.WriteLine(exc.Message);
             }
 
             ChromeDriverInstaller.v115httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("vklass-attendance", "1"));

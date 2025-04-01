@@ -72,6 +72,8 @@ namespace VKlassAbsence
             var versionJson = await v115httpClient.GetStringAsync("https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build-with-downloads.json");
             dynamic versionInfo = JsonConvert.DeserializeObject(versionJson);
 
+            
+
             string zipName;
             string driverName;
             string platform;
@@ -104,6 +106,7 @@ namespace VKlassAbsence
             // Find URL for the correct platform
             for (int i = 0; i < versionInfo.builds[chromeVersion].downloads.chromedriver.Count; i++)
             {
+              
                 if (versionInfo.builds[chromeVersion].downloads.chromedriver[i].platform == platform)
                 {
                     testing = versionInfo.builds[chromeVersion].downloads.chromedriver[i].url;

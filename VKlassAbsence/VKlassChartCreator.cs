@@ -7,6 +7,7 @@ using OpenQA.Selenium.Support;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
+using System.Diagnostics;
 
 namespace VKlassAbsence
 {
@@ -64,6 +65,7 @@ namespace VKlassAbsence
             actions = new Actions(driver);
             wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
             shortWait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
+            shortWait.IgnoreExceptionTypes(typeof(StaleElementReferenceException));
         }
 
         public void StartChromeWindow()
@@ -381,9 +383,21 @@ namespace VKlassAbsence
                     månadsvyLink.Click();
 
                     // Find student name
-                    var nameLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_studentLink")));
-                    var name = nameLink.Text;
-                    studentAttendance.Name = name;
+                    try
+                    {
+                        var nameLink = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_studentLink")));
+                        var name = nameLink.Text;
+                        studentAttendance.Name = name;
+                        
+
+                    }
+                    catch (Exception)
+                    {
+                        Debug.WriteLine("Couldn't read name, retrying...");
+                        numberOfTriesToLoadPage++;
+                        continue;
+                    }
+
 
                     List<Lesson> allLessons = new List<Lesson>();
 
@@ -418,11 +432,25 @@ dateBox2.focus();
                     // Wait until page is updated
                     try
                     {
-                        shortWait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")).GetAttribute("value") == "Visa");
+                        int maxTries2 = 10;
+
+                        for (int i = 0; i < maxTries2; i++)
+                        {
+                            IWebElement ele = null;
+                            shortWait.Until(e => ele = e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")));
+
+                            if (ele.GetAttribute("value") == "Visa")
+                            {
+                                pageLoadedCorrectly = true;
+                                break;
+                            }
+                        }
+
 
                     }
                     catch (Exception e)
                     {
+                        Debug.WriteLine("Error loading page: " + e);
                         numberOfTriesToLoadPage++;
                         if (numberOfTriesToLoadPage >= maxTries)
                         {
@@ -430,7 +458,9 @@ dateBox2.focus();
                         }
                         continue;
                     }
+            
                     pageLoadedCorrectly = true;
+                   
                 }
 
 
