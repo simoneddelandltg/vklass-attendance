@@ -34,7 +34,7 @@ namespace VKlassGrafiskFrånvaro
         DispatcherTimer dt = new();
 
         string lastFilePath = "";
-        static string currentVersionTag = "v1.3.2";
+        static string currentVersionTag = "v1.3.3";
 
         public MainWindow()
         {
@@ -48,6 +48,7 @@ namespace VKlassGrafiskFrånvaro
             vklass = new VKlassChartCreator();
 
             SetDates();
+            this.Title = "Vklass frånvaroöversikt " + currentVersionTag;
             
         }
 
