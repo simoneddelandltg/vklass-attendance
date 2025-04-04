@@ -376,11 +376,22 @@ namespace VKlassAbsence
                 while (!pageLoadedCorrectly && numberOfTriesToLoadPage < maxTries)
                 {
 
-                    // Go to the students "Info & närvaro" page
-                    driver.Navigate().GoToUrl(item);
-                    // Find "Hantera Närvaro"-link and click on it
-                    var månadsvyLink = wait.Until(e => e.FindElement(By.XPath("//span[text()='Hantera närvaro']")));
-                    månadsvyLink.Click();
+                    try
+                    {
+                        // Go to the students "Info & närvaro" page
+                        driver.Navigate().GoToUrl(item);
+                        // Find "Hantera Närvaro"-link and click on it
+                        var månadsvyLink = wait.Until(e => e.FindElement(By.XPath("//span[text()='Hantera närvaro']")));
+                        månadsvyLink.Click();
+                    }
+                    catch (Exception)
+                    {
+                        Debug.WriteLine("Couldn't load student page, retrying...");
+                        numberOfTriesToLoadPage++;
+                        continue;
+                    }
+
+
 
                     // Find student name
                     try
@@ -422,12 +433,38 @@ document.execCommand(""insertText"", false, ""{endDateCopy.ToString("yyyy-MM-dd"
 dateBox.focus();
 dateBox2.focus();
 ";
-                    jsExec.ExecuteScript(testScript);
+
+                    try
+                    {
+                        jsExec.ExecuteScript(testScript);
+                    }
+                    catch (Exception)
+                    {
+                        Debug.WriteLine("Error executing JavaScript, retrying...");
+                        numberOfTriesToLoadPage++;
+                        continue;
+                    }
+           
 
                     // Show lessons in the selected timespan
-                    var showListButton = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")));
-                    var radControls = jsExec.ExecuteScript(@"arguments[0].value = 'Visa ';", showListButton);
-                    showListButton.Click();
+
+                    try
+                    {
+                        var showListButton = wait.Until(e => e.FindElement(By.Id("ctl00_ContentPlaceHolder2_ShowPresenceListButton")));
+                        var radControls = jsExec.ExecuteScript(@"arguments[0].value = 'Visa ';", showListButton);
+                        showListButton.Click();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine("Error clicking listbutton: " + e);
+                        numberOfTriesToLoadPage++;
+                        if (numberOfTriesToLoadPage >= maxTries)
+                        {
+                            throw;
+                        }
+                        continue;
+                    }
+
 
                     // Wait until page is updated
                     try
