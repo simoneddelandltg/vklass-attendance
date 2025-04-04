@@ -34,7 +34,7 @@ namespace VKlassGrafiskFrånvaro
         DispatcherTimer dt = new();
 
         string lastFilePath = "";
-        static string currentVersionTag = "v1.3.4";
+        static string currentVersionTag = "v1.3.5";
 
         public MainWindow()
         {
@@ -105,13 +105,24 @@ namespace VKlassGrafiskFrånvaro
                 Debug.WriteLine(exc.Message);
             }
 
-            ChromeDriverInstaller.v115httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("vklass-attendance", "1"));
-            var latestTag = await ChromeDriverInstaller.v115httpClient.GetStringAsync("https://api.github.com/repos/simoneddelandltg/vklass-attendance/releases/latest");
-            dynamic latestReleaseTag = JsonConvert.DeserializeObject(latestTag);
 
-            if (latestReleaseTag.tag_name != currentVersionTag)
+            try
             {
-                newVersionBlock.Visibility = Visibility.Visible;
+                ChromeDriverInstaller.v115httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("vklass-attendance", "1"));
+                var latestTag = await ChromeDriverInstaller.v115httpClient.GetStringAsync("https://api.github.com/repos/simoneddelandltg/vklass-attendance/releases/latest");
+                dynamic latestReleaseTag = JsonConvert.DeserializeObject(latestTag);
+
+                if (latestReleaseTag.tag_name != currentVersionTag)
+                {
+                    newVersionBlock.Visibility = Visibility.Visible;
+                }
+
+            }
+            catch (Exception exc)
+            {
+
+                Debug.WriteLine("Kunde inte hitta senaste versionsnumret");
+                Debug.WriteLine(exc.Message);
             }
 
             
